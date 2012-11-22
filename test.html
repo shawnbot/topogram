@@ -23,18 +23,7 @@
       }
 
       path.state {
-        stroke: none;
-      }
-
-      path.mesh {
-        fill: none;
-        stroke: #fff;
-        stroke-width: .5;
-      }
-
-      #map.dark path.mesh {
-        fill: none;
-        stroke: #bbb;
+        stroke: #666;
         stroke-width: .5;
       }
 
@@ -71,14 +60,16 @@
           ident = function(c) { return c; },
           topology,
           dataById = {},
+          field = location.search.substr(1) || "POPESTIMATE2011",
+          fmt = d3.format("+0,"),
           carto = d3.cartogram()
-            .iterations(3)
+            .iterations(4)
             .projection(proj)
             .properties(function(d) {
               return dataById[d.id];
             })
             .value(function(d) {
-              return +d.properties.POPESTIMATE2011;
+              return +d.properties[field];
             });
 
       d3.json("data/us-states.json", function(topo) {
@@ -107,20 +98,13 @@
             .attr("id", function(d) {
               return d.properties.NAME;
             })
+            .attr("fill", "#ccc")
             .attr("d", path);
 
         states.append("title");
 
-        update();
+        setTimeout(update, 10);
       }
-
-      var field = "NPOPCHG_2011",
-          fmt = d3.format("+0,");
-
-      window.onhashchange = function() {
-        field = location.hash.substr(1) || field;
-        update();
-      };
 
       function update() {
         var value = function(d) {
@@ -135,31 +119,43 @@
             lo = values[0],
             hi = values[values.length - 1];
 
-        var scheme = colorbrewer.GnBu;
+        var scheme = colorbrewer.RdBu,
+            color = d3.scale.linear();
         if (lo < 0) {
-          scheme = colorbrewer.RdBu;
-          // lo = Math.min(-hi, lo);
-          map.classed("dark", true);
+          color.domain([lo, 0, hi])
+            .range(scheme[3]);
+          map.classed("diverging", true);
         } else {
+          color.domain([lo, d3.mean(values), hi])
+            .range(scheme[3]);
         }
 
-        var color = d3.scale.linear()
-          .domain([lo, 0, hi])
-          .range(scheme[3]);
+
+        var scale = d3.scale.linear()
+          .domain([lo, hi])
+          .range([10, 1000]);
+
+        carto.value(function(d) {
+          return scale(value(d));
+        });
 
         var features = carto(topology),
             path = d3.geo.path()
               .projection(ident);
 
         states.data(features)
-          .attr("fill", function(d) {
-            return color(value(d));
-          })
-          .attr("d", path)
           .select("title")
             .text(function(d) {
               return [d.properties.NAME, fmt(value(d))].join(": ");
             });
+
+        states.transition()
+          .duration(1000)
+          .ease("linear")
+          .attr("fill", function(d) {
+            return color(value(d));
+          })
+          .attr("d", path);
       }
 
     </script>

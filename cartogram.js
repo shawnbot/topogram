@@ -6,7 +6,11 @@
       // objects are projected into screen coordinates
       var projectGeometry = projector(projection),
           objects = carto.features(topology).map(function(feature) {
-            feature.geometry.coordinates = projectGeometry(feature.geometry);
+            var geom = feature.geometry;
+            feature.geometry = {
+              type: geom.type,
+              coordinates: projectGeometry(feature.geometry)
+            };
             return feature;
           }),
           values = objects.map(value),
@@ -28,7 +32,11 @@
       }
 
       console.log("total value:", totalValue, "values:", values);
-      for (var i = 0; i < iterations; i++) {
+      var i = 0,
+          sizeError = 100;
+      while (i++ < iterations && sizeError > 1) {
+        console.log("iteration", i);
+
         var deltasByCoord = {};
         projectedArcs.forEach(function(arc) {
           arc.forEach(function(coord) {
@@ -37,7 +45,6 @@
           });
         });
 
-        console.log("iteration", i + 1);
         var areas = objects.map(path.area),
             totalArea = sum(areas);
             meta = objects.map(function(o, j) {
@@ -47,8 +54,7 @@
                   radius = Math.sqrt(area / Math.PI),
                   mass = Math.sqrt(desired / Math.PI) - radius,
                   sizeError = Math.max(area, desired) / Math.min(area, desired);
-              console.log(o.id, "@", j, "area:", area, "value:", v, "->",
-                desired, radius, mass, sizeError);
+              // console.log(o.id, "@", j, "area:", area, "value:", v, "->", desired, radius, mass, sizeError);
               return {
                 id:         o.id,
                 area:       area,
@@ -59,15 +65,17 @@
                 mass:       mass,
                 sizeError:  sizeError
               };
-            }),
-            sizeErrors = meta.map(function(d) {
-              return d.sizeError;
-            }),
-            forceReductionFactor = 1 / (1 + mean(sizeErrors));
+            });
 
-        console.log("meta:", meta);
+        sizeError = mean(meta.map(function(d) {
+          return d.sizeError;
+        }));
+
+        var forceReductionFactor = 1 / (1 + sizeError);
+
+        // console.log("meta:", meta);
         console.log("  total area:", totalArea);
-        console.log("  force reduction factor:", forceReductionFactor, "errors:", sizeErrors);
+        console.log("  force reduction factor:", forceReductionFactor, "mean error:", sizeError);
 
         projectedArcs.forEach(function(arc, j) {
           arc.forEach(function(coord, k) {
