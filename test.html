@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cartogram</title>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v2.min.js"></script>
+    <script src="colorbrewer/colorbrewer.js"></script>
+    <script src="topojson.js"></script>
+    <script src="cartogram.js"></script>
+    <style type="text/css">
+
+      html, body {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #map {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #f8f8f8;
+      }
+
+      path.state {
+        stroke: none;
+      }
+
+      path.mesh {
+        fill: none;
+        stroke: #fff;
+        stroke-width: .5;
+      }
+
+      #map.dark path.mesh {
+        fill: none;
+        stroke: #bbb;
+        stroke-width: .5;
+      }
+
+    </style>
+  </head>
+  <body>
+    <svg id="map"></svg>
+    <script>
+
+      var map = d3.select("#map"),
+          zoom = d3.behavior.zoom()
+            .translate([55, 30])
+            .scale(1)
+            .scaleExtent([0.5, 10.0])
+            .on("zoom", updateZoom),
+          layer = map.append("g")
+            .attr("id", "layer"),
+          states = layer.append("g")
+            .attr("id", "states")
+            .selectAll("path");
+
+      d3.select("body").call(zoom);
+      updateZoom();
+
+      function updateZoom() {
+        var scale = zoom.scale();
+        layer.attr("transform",
+          "translate(" + zoom.translate() + ") " +
+          "scale(" + [scale, scale] + ")");
+      }
+
+      var proj = d3.geo.albersUsa(),
+          // identity projection
+          ident = function(c) { return c; },
+          carto = d3.cartogram()
+            .iterations(0)
+            .projection(proj);
+
+      d3.json("data/us-states.json", function(topo) {
+        d3.csv("data/nst_2011.csv", function(data) {
+          init(topo, data);
+        });
+      });
+
+      function doit(topo, stateData) {
+        window.topo = topo;
+
+        var dataById = d3.nest()
+          .key(function(d) { return d.STATE; })
+          .rollup(function(d) { return d[0]; })
+          .map(stateData);
+
+        var states = [
+          "Nebraska",
+          "Colorado",
+          "Utah",
+          "Wyoming"
+        ];
+        function good(d) {
+          return (d.id in dataById) && states.indexOf(dataById[d.id].NAME) > -1;
+        }
+
+        var unprojected = carto.features(topo),
+            projected = carto(topo);
+        console.log(unprojected[0], projected[0]);
+        for (var i = 0; i < 3; i++) {
+          console.log(i);
+          console.log("unprojected:", unprojected[0].geometry.coordinates[0][0][i]);
+          console.log("reprojected:", proj(unprojected[0].geometry.coordinates[0][0][i]));
+          console.log("* projected:", projected[0].geometry.coordinates[0][0][i]);
+        }
+        // return;
+
+        var before = topo,
+            beforeStates = carto.features(before).filter(good),
+            afterStates = carto(before),
+            container = d3.select("#states");
+
+        function debugStr(d) {
+          return JSON.stringify(d.geometry.coordinates[0].slice(0, 4), undefined, "  ");
+        }
+
+        function test(d, i) {
+          console.log(dataById[d.id].NAME, d3.select(this).attr("d").substr(0, 100));
+        }
+
+        console.log("before:", beforeStates[0], debugStr(beforeStates[0]));
+        container.selectAll("path.before")
+          .data(beforeStates)
+          .enter()
+          .append("path")
+            .attr("class", "before")
+            .attr("fill-opacity", .1)
+            .attr("fill", "#33c")
+            .attr("stroke", "#33c")
+            .attr("d", d3.geo.path()
+              .projection(proj))
+            .each(test);
+
+        /*
+        console.log("after:", afterStates[0], debugStr(afterStates[0]));
+        container.selectAll("path.after")
+          .data(afterStates)
+          .enter()
+          .append("path")
+            .attr("class", "after")
+            .attr("fill-opacity", .1)
+            .attr("fill", "#c33")
+            .attr("stroke", "#c33")
+            .attr("d", d3.geo.path()
+              .projection(ident))
+            .each(test);
+        */
+      }
+
+      function init(topo, stateData) {
+
+        var dataById = d3.nest()
+          .key(function(d) { return d.STATE; })
+          .rollup(function(d) { return d[0]; })
+          .map(stateData);
+
+        carto
+          .iterations(3)
+          .properties(function(d) {
+            return dataById[d.id];
+          })
+          .value(function(d) {
+            return +d.properties.POPESTIMATE2011;
+          });
+
+        var features = carto(topo),
+            path = d3.geo.path()
+              .projection(function(c) { return c; });
+
+        states = states.data(features)
+          .enter()
+          .append("path")
+            .attr("class", "state")
+            .attr("id", function(d) {
+              return d.properties.NAME;
+            })
+            .attr("d", path);
+
+        states.append("title");
+
+        /*
+        var mesh = layer.append("path")
+          .attr("class", "mesh")
+          .attr("d", path(topojson.mesh(topo)));
+        */
+
+        update();
+      }
+
+      var field = "NPOPCHG_2011",
+          fmt = d3.format("+0,");
+
+      window.onhashchange = function() {
+        field = location.hash.substr(1) || field;
+        update();
+      };
+
+      function update() {
+        var value = function(d) {
+              return +d.properties[field];
+            },
+            values = states.data()
+              .map(value)
+              .filter(function(n) {
+                return !isNaN(n);
+              })
+              .sort(d3.ascending),
+            lo = values[0],
+            hi = values[values.length - 1];
+
+        var scheme = colorbrewer.GnBu;
+        if (lo < 0) {
+          scheme = colorbrewer.RdBu;
+          // lo = Math.min(-hi, lo);
+          map.classed("dark", true);
+        } else {
+        }
+
+        var color = d3.scale.linear()
+          .domain([lo, 0, hi])
+          .range(scheme[3]);
+
+        states
+          .attr("fill", function(d) {
+            return color(value(d));
+          })
+          .select("title")
+            .text(function(d) {
+              return [d.properties.NAME, fmt(value(d))].join(": ");
+            });
+      }
+
+    </script>
+  </body>
+</html>
