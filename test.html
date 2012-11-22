@@ -69,35 +69,36 @@
       var proj = d3.geo.albersUsa(),
           // identity projection
           ident = function(c) { return c; },
+          topology,
+          dataById = {},
           carto = d3.cartogram()
-            .iterations(0)
-            .projection(proj);
+            .iterations(3)
+            .projection(proj)
+            .properties(function(d) {
+              return dataById[d.id];
+            })
+            .value(function(d) {
+              return +d.properties.POPESTIMATE2011;
+            });
 
       d3.json("data/us-states.json", function(topo) {
+        topology = topo;
         d3.csv("data/nst_2011.csv", function(data) {
-          init(topo, data);
+
+          dataById = d3.nest()
+            .key(function(d) { return d.STATE; })
+            .rollup(function(d) { return d[0]; })
+            .map(data);
+
+          init();
         });
       });
 
-      function init(topo, stateData) {
+      function init() {
 
-        var dataById = d3.nest()
-          .key(function(d) { return d.STATE; })
-          .rollup(function(d) { return d[0]; })
-          .map(stateData);
-
-        carto
-          .iterations(3)
-          .properties(function(d) {
-            return dataById[d.id];
-          })
-          .value(function(d) {
-            return +d.properties.POPESTIMATE2011;
-          });
-
-        var features = carto(topo),
+        var features = carto.features(topology),
             path = d3.geo.path()
-              .projection(function(c) { return c; });
+              .projection(proj);
 
         states = states.data(features)
           .enter()
@@ -109,12 +110,6 @@
             .attr("d", path);
 
         states.append("title");
-
-        /*
-        var mesh = layer.append("path")
-          .attr("class", "mesh")
-          .attr("d", path(topojson.mesh(topo)));
-        */
 
         update();
       }
@@ -152,10 +147,15 @@
           .domain([lo, 0, hi])
           .range(scheme[3]);
 
-        states
+        var features = carto(topology),
+            path = d3.geo.path()
+              .projection(ident);
+
+        states.data(features)
           .attr("fill", function(d) {
             return color(value(d));
           })
+          .attr("d", path)
           .select("title")
             .text(function(d) {
               return [d.properties.NAME, fmt(value(d))].join(": ");
