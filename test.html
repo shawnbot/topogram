@@ -90,6 +90,7 @@
         var features = carto.features(topology),
             path = d3.geo.path()
               .projection(proj);
+        console.log("features[0]:", features[0]);
 
         states = states.data(features)
           .enter()
@@ -104,6 +105,19 @@
         states.append("title");
 
         setTimeout(update, 10);
+      }
+
+      function reset() {
+        var features = carto.features(topology),
+            path = d3.geo.path()
+              .projection(proj);
+        console.log("features[0]:", features[0]);
+
+        states.data(features)
+          .transition()
+            .duration(1000)
+            .attr("fill", "#ccc")
+            .attr("d", path);
       }
 
       function update() {
@@ -129,7 +143,6 @@
           color.domain([lo, d3.mean(values), hi])
             .range(scheme[3]);
         }
-
 
         var scale = d3.scale.linear()
           .domain([lo, hi])
