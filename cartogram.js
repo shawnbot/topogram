@@ -3,9 +3,12 @@
   d3.cartogram = function() {
 
     function carto(topology) {
+      // copy it first
+      topology = copy(topology);
+
       // objects are projected into screen coordinates
       var projectGeometry = projector(projection),
-          objects = carto.features(topology).map(function(feature) {
+          objects = carto.features(topology, false).map(function(feature) {
             var geom = feature.geometry;
             feature.geometry = {
               type: geom.type,
@@ -155,7 +158,7 @@
     carto.project = function(topology) {
       var tf = transformer(topology.transform);
       return {
-        objects: topology.objects,
+        objects: copy(topology.objects),
         transform: {
           scale: [1, 1],
           translate: [0, 0]
@@ -210,7 +213,9 @@
       };
     };
 
-    carto.features = function(topo) {
+    carto.features = function(topo, dupe) {
+      // XXX is this necessary?
+      if (dupe) topo = copy(topo);
       return topo.objects[0].geometries.map(function(f) {
         return carto.feature(topo, f);
       });
@@ -286,6 +291,20 @@
     return function(geom) {
       return types[geom.type](geom.coordinates);
     };
+  }
+
+  function copy(o) {
+    return (o instanceof Array)
+      ? o.map(copy)
+      : (typeof o === "string" || typeof o === "number")
+        ? o
+        : copyObject(o);
+  }
+  
+  function copyObject(o) {
+    var obj = {};
+    for (var k in o) obj[k] = copy(o[k]);
+    return obj;
   }
 
 })(this);

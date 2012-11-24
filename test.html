@@ -30,8 +30,74 @@
     </style>
   </head>
   <body>
+    <form>
+      <p>
+        <label>Scale by: <select id="field"></select></label>
+        <label>in year: <select id="year"></select></label>
+        <span id="status"></span>
+      </p>
+    </form>
     <svg id="map"></svg>
     <script>
+
+      // field definitions from:
+      // <http://www.census.gov/popest/data/national/totals/2011/files/NST-EST2011-alldata.pdf>
+      var years = [2010, 2011],
+          fields = [
+            {name: "(none)", id: "none"},
+            {name: "Census Population", id: "censuspop", key: "CENSUS%dPOP", years: [2010]},
+            {name: "Estimate Base", id: "censuspop", key: "ESTIMATESBASE%d", years: [2010]},
+            {name: "Population Estimate", id: "popest", key: "POPESTIMATE%d"},
+            {name: "Population Change", id: "popchange", key: "NPOPCHG_%d", format: "+0,"},
+            {name: "Births", id: "births", key: "BIRTHS%d"},
+            {name: "Deaths", id: "deaths", key: "DEATHS%d"},
+            {name: "Natural Increase", id: "natinc", key: "NATURALINC%d"},
+            {name: "Int'l Migration", id: "intlmig", key: "INTERNATIONALMIG%d", format: "+0,"},
+            {name: "Domestic Migration", id: "domesticmig", key: "DOMESTICMIG%d", format: "+0,"},
+            {name: "Net Migration", id: "netmig", key: "NETMIG%d", format: "+0,"},
+            {name: "Residual", id: "residual", key: "RESIDUAL%d"},
+            {name: "Birth Rate", id: "birthrate", key: "RBIRTH%d", years: [2011], format: "0,%"},
+            {name: "Death Rate", id: "deathrate", key: "RDEATH%d", years: [2011], format: "0,%"},
+            {name: "Natural Increase Rate", id: "natincrate", key: "RNATURALINC%d", years: [2011], format: "+0,%"},
+            {name: "Int'l Migration Rate", id: "intlmigrate", key: "RINTERNATIONALMIG%d", years: [2011], format: "+0,%"},
+            {name: "Net Domestic Migration Rate", id: "domesticmigrate", key: "RDOMESTICMIG%d", years: [2011], format: "+0,%"},
+            {name: "Net Migration Rate", id: "netmigrate", key: "RNETMIG%d", years: [2011], format: "+0,%"},
+          ],
+          fieldsById = d3.nest()
+            .key(function(d) { return d.id; })
+            .rollup(function(d) { return d[0]; })
+            .map(fields),
+          field = fields[0],
+          year = years[0];
+
+      var body = d3.select("body"),
+          stat = d3.select("#status");
+
+      var fieldSelect = d3.select("#field")
+        .on("change", function(e) {
+          field = fields[this.selectedIndex];
+          location.hash = "#" + [field.id, year].join("/");
+        });
+
+      fieldSelect.selectAll("option")
+        .data(fields)
+        .enter()
+        .append("option")
+          .attr("value", function(d) { return d.id; })
+          .text(function(d) { return d.name; });
+
+      var yearSelect = d3.select("#year")
+        .on("change", function(e) {
+          year = years[this.selectedIndex];
+          location.hash = "#" + [field.id, year].join("/");
+        });
+
+      yearSelect.selectAll("option")
+        .data(years)
+        .enter()
+        .append("option")
+          .attr("value", function(y) { return y; })
+          .text(function(y) { return y; })
 
       var map = d3.select("#map"),
           zoom = d3.behavior.zoom()
@@ -45,7 +111,7 @@
             .attr("id", "states")
             .selectAll("path");
 
-      d3.select("body").call(zoom);
+      map.call(zoom);
       updateZoom();
 
       function updateZoom() {
@@ -55,15 +121,15 @@
           "scale(" + [scale, scale] + ")");
       }
 
+      var iterations = parseInt(location.search.substr(1)) || 8;
+
       var proj = d3.geo.albersUsa(),
           // identity projection
           ident = function(c) { return c; },
           topology,
           dataById = {},
-          field = location.search.substr(1) || "POPESTIMATE2011",
-          fmt = d3.format("+0,"),
           carto = d3.cartogram()
-            .iterations(4)
+            .iterations(iterations)
             .projection(proj)
             .properties(function(d) {
               return dataById[d.id];
@@ -71,6 +137,10 @@
             .value(function(d) {
               return +d.properties[field];
             });
+
+      window.onhashchange = function() {
+        parseHash();
+      };
 
       d3.json("data/us-states.json", function(topo) {
         topology = topo;
@@ -86,11 +156,9 @@
       });
 
       function init() {
-
         var features = carto.features(topology),
             path = d3.geo.path()
               .projection(proj);
-        console.log("features[0]:", features[0]);
 
         states = states.data(features)
           .enter()
@@ -99,30 +167,41 @@
             .attr("id", function(d) {
               return d.properties.NAME;
             })
-            .attr("fill", "#ccc")
+            .attr("fill", "#fff")
             .attr("d", path);
-
         states.append("title");
 
-        setTimeout(update, 10);
+        parseHash();
       }
 
       function reset() {
+        stat.text("");
+        body.classed("updating", false);
+
         var features = carto.features(topology),
             path = d3.geo.path()
               .projection(proj);
-        console.log("features[0]:", features[0]);
 
         states.data(features)
           .transition()
             .duration(1000)
-            .attr("fill", "#ccc")
+            .attr("fill", "#fff")
             .attr("d", path);
+
+        states.select("title")
+          .text(function(d) {
+            return d.properties.NAME;
+          });
       }
 
       function update() {
-        var value = function(d) {
-              return +d.properties[field];
+        var start = Date.now();
+        body.classed("updating", true);
+
+        var key = field.key.replace("%d", year),
+            fmt = d3.format(field.format || ",0"),
+            value = function(d) {
+              return +d.properties[key];
             },
             values = states.data()
               .map(value)
@@ -133,29 +212,38 @@
             lo = values[0],
             hi = values[values.length - 1];
 
-        var scheme = colorbrewer.RdBu,
-            color = d3.scale.linear();
-        if (lo < 0) {
-          color.domain([lo, 0, hi])
-            .range(scheme[3]);
+        function lab(c) { return d3.hsl(c); }
+
+        console.log("domain:", [lo, hi]);
+
+        var diverging = lo < 0,
+            scheme = colorbrewer["RdYlBu"],
+            color = d3.scale.linear()
+              .range(scheme[3].map(lab).reverse());
+        if (diverging) {
+          color.domain([lo, 0, hi]);
           map.classed("diverging", true);
         } else {
-          color.domain([lo, d3.mean(values), hi])
-            .range(scheme[3]);
+          color.domain([lo, d3.mean(values), hi]);
         }
 
+        // normalize the scale to positive numbers
         var scale = d3.scale.linear()
           .domain([lo, hi])
           .range([10, 1000]);
 
+        // tell the cartogram to use the scaled values
         carto.value(function(d) {
           return scale(value(d));
         });
 
+        // generate the new features, pre-projected
         var features = carto(topology),
+            // and use the identity projection
             path = d3.geo.path()
               .projection(ident);
 
+        // update the data
         states.data(features)
           .select("title")
             .text(function(d) {
@@ -169,6 +257,61 @@
             return color(value(d));
           })
           .attr("d", path);
+
+        var delta = (Date.now() - start) / 1000;
+        stat.text(["took", delta.toFixed(1), "seconds"].join(" "));
+        body.classed("updating", false);
+      }
+
+      var deferredUpdate = (function() {
+        var timeout;
+        return function() {
+          var args = arguments;
+          clearTimeout(timeout);
+          stat.text("Updating...");
+          return timeout = setTimeout(function() {
+            update.apply(null, arguments);
+          }, 10);
+        };
+      })();
+
+      function parseHash() {
+        var parts = location.hash.substr(1).split("/"),
+            desiredFieldId = parts[0],
+            desiredYear = +parts[1];
+
+        field = fieldsById[desiredFieldId] || fields[0];
+        year = (years.indexOf(desiredYear) > -1) ? desiredYear : years[0];
+
+        fieldSelect.property("selectedIndex", fields.indexOf(field));
+
+        if (field.id === "none") {
+
+          yearSelect.attr("disabled", "disabled");
+          reset();
+
+        } else {
+
+          if (field.years) {
+            if (field.years.indexOf(year) === -1) {
+              year = field.years[0];
+            }
+            yearSelect.selectAll("option")
+              .attr("disabled", function(y) {
+                return (field.years.indexOf(y) === -1) ? "disabled" : null;
+              });
+          } else {
+            yearSelect.selectAll("option")
+              .attr("disabled", null);
+          }
+
+          yearSelect
+            .property("selectedIndex", years.indexOf(year))
+            .attr("disabled", null);
+
+          deferredUpdate();
+          location.replace("#" + [field.id, year].join("/"));
+        }
       }
 
     </script>
