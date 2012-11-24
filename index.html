@@ -155,7 +155,7 @@
             .attr("id", "states")
             .selectAll("path");
 
-      map.call(zoom);
+      // map.call(zoom);
       updateZoom();
 
       function updateZoom() {
@@ -168,8 +168,6 @@
       var iterations = parseInt(location.search.substr(1)) || 8;
 
       var proj = d3.geo.albersUsa(),
-          // identity projection
-          ident = function(c) { return c; },
           topology,
           dataById = {},
           carto = d3.cartogram()
@@ -222,7 +220,7 @@
         stat.text("");
         body.classed("updating", false);
 
-        var features = carto.features(topology),
+        var features = carto.features(topology);
             path = d3.geo.path()
               .projection(proj);
 
@@ -277,10 +275,7 @@
         });
 
         // generate the new features, pre-projected
-        var features = carto(topology),
-            // and use the identity projection
-            path = d3.geo.path()
-              .projection(ident);
+        var features = carto(topology);
 
         // update the data
         states.data(features)
@@ -295,7 +290,7 @@
           .attr("fill", function(d) {
             return color(value(d));
           })
-          .attr("d", path);
+          .attr("d", carto.path);
 
         var delta = (Date.now() - start) / 1000;
         stat.text(["took", delta.toFixed(1), "seconds"].join(" "));

@@ -1,5 +1,31 @@
 (function(exports) {
 
+  /*
+   * d3.cartogram is a d3-friendly implementation of An Algorith to Construct
+   * Continuous Area Cartograms:
+   *
+   * <http://chrisman.scg.ulaval.ca/G360/dougenik.pdf>
+   *
+   * It requires topojson to decode TopoJSON-encoded topologies:
+   *
+   * <http://github.com/mbostock/topojson/>
+   *
+   * Usage:
+   *
+   * var cartogram = d3.cartogram()
+   *  .projection(d3.geo.albersUsa())
+   *  .value(function(d) {
+   *    return Math.random() * 100;
+   *  });
+   * d3.json("path/to/topology.json", function(topology) {
+   *  var features = cartogram(topology);
+   *  d3.select("svg").selectAll("path")
+   *    .data(features)
+   *    .enter()
+   *    .append("path")
+   *      .attr("d", cartogram.path);
+   * });
+   */
   d3.cartogram = function() {
 
     function carto(topology) {
@@ -37,7 +63,7 @@
 
       // path with identity projection
       var path = d3.geo.path()
-        .projection(function(c) { return c; });
+        .projection(ident);
 
       // our key function hashes [x, y] coordinates
       var Q = 7;
@@ -129,6 +155,7 @@
           });
         });
 
+        // updateGeom(geometry) applies the delta for each coordinate
         var updateGeom = projector(function(coord) {
           var k = key(coord),
               delta = deltasByCoord[k];
@@ -141,6 +168,7 @@
           updateGeom(o.geometry);
         });
 
+        // break if we hit the target size error
         if (sizeError <= targetSizeError) break;
       }
 
@@ -155,6 +183,10 @@
         value = function(d) {
           return 1;
         };
+
+    // for convenience
+    carto.path = d3.geo.path()
+      .projection(ident);
 
     carto.iterations = function(i) {
       if (arguments.length) {
@@ -273,6 +305,11 @@
     return function(geom) {
       return types[geom.type](geom.coordinates);
     };
+  }
+
+  // identity projection
+  function ident(c) {
+    return c;
   }
 
   function copy(o) {
