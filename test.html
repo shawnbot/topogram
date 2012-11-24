@@ -24,7 +24,16 @@
 
       h1 {
         font-size: 200%;
+        margin: 0 0 15px 0;
+      }
+
+      h2 {
+        font-size: 160%;
         margin: 0 0 10px 0;
+      }
+
+      p {
+        margin: 0 0 10px;
       }
 
       form, form > * {
@@ -34,6 +43,7 @@
       #map {
         display: block;
         height: 500px;
+        margin: 20px 0;
       }
 
       path.state {
@@ -56,28 +66,27 @@
       <svg id="map"></svg>
       <div id="about">
         <h2>About</h2>
-        <p><a href="cartogram.js">cartogram.js</a> is an implementation of <a
+        <p><a href="cartogram.js">cartogram.js</a> is a JavaScript implementation of <a
           href="http://chrisman.scg.ulaval.ca/G360/dougenik.pdf">an algoritm to construct continuous area cartograms</a>,
         by James A. Dougenik, Nicholas R. Chrisman and Duane R. Niemeyer,
         &copy;1985 by the Association of American Geographers. This example combines <a
-          href="http://github.com/mbostock/topojson">TopoJSON</a>-encoded and simplified
+          href="http://github.com/mbostock/topojson">TopoJSON</a>-encoded and -simplified
         boundaries of the United States with <a
           href="http://www.census.gov/popest/data/state/totals/2011/">2011 US Census population estimates</a>
         to size each state proportionally.</p>
 
         <p><a href="http://d3js.org">d3</a> does most of the heavy lifting;
-        color schemes are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
+        color are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
       </div>
     </div>
     <script>
 
       // field definitions from:
       // <http://www.census.gov/popest/data/national/totals/2011/files/NST-EST2011-alldata.pdf>
-      var years = [2010, 2011],
-          fields = [
+      var fields = [
             {name: "(none)", id: "none"},
-            {name: "Census Population", id: "censuspop", key: "CENSUS%dPOP", years: [2010]},
-            {name: "Estimate Base", id: "censuspop", key: "ESTIMATESBASE%d", years: [2010]},
+            // {name: "Census Population", id: "censuspop", key: "CENSUS%dPOP", years: [2010]},
+            // {name: "Estimate Base", id: "censuspop", key: "ESTIMATESBASE%d", years: [2010]},
             {name: "Population Estimate", id: "popest", key: "POPESTIMATE%d"},
             {name: "Population Change", id: "popchange", key: "NPOPCHG_%d", format: "+0,"},
             {name: "Births", id: "births", key: "BIRTHS%d"},
@@ -94,12 +103,16 @@
             {name: "Net Domestic Migration Rate", id: "domesticmigrate", key: "RDOMESTICMIG%d", years: [2011], format: "+0,%"},
             {name: "Net Migration Rate", id: "netmigrate", key: "RNETMIG%d", years: [2011], format: "+0,%"},
           ],
+          years = [2010, 2011],
           fieldsById = d3.nest()
             .key(function(d) { return d.id; })
             .rollup(function(d) { return d[0]; })
             .map(fields),
           field = fields[0],
-          year = years[0];
+          year = years[0],
+          colors = colorbrewer.RdYlBu[3]
+            .reverse()
+            .map(function(rgb) { return d3.hsl(rgb); });
 
       var body = d3.select("body"),
           stat = d3.select("#status");
@@ -132,7 +145,7 @@
 
       var map = d3.select("#map"),
           zoom = d3.behavior.zoom()
-            .translate([-15, 32])
+            .translate([-29, 32])
             .scale(.94)
             .scaleExtent([0.5, 10.0])
             .on("zoom", updateZoom),
@@ -198,7 +211,7 @@
             .attr("id", function(d) {
               return d.properties.NAME;
             })
-            .attr("fill", "#fff")
+            .attr("fill", "#fafafa")
             .attr("d", path);
         states.append("title");
 
@@ -216,7 +229,7 @@
         states.data(features)
           .transition()
             .duration(1000)
-            .attr("fill", "#fff")
+            .attr("fill", "#fafafa")
             .attr("d", path);
 
         states.select("title")
@@ -243,14 +256,9 @@
             lo = values[0],
             hi = values[values.length - 1];
 
-        function lab(c) { return d3.hsl(c); }
-
-        console.log("domain:", [lo, hi]);
-
         var diverging = lo < 0,
-            scheme = colorbrewer["RdYlBu"],
             color = d3.scale.linear()
-              .range(scheme[3].map(lab).reverse());
+              .range(colors);
         if (diverging) {
           color.domain([lo, 0, hi]);
           map.classed("diverging", true);
