@@ -34,11 +34,10 @@
         return [coord[0].toFixed(Q), coord[1].toFixed(Q)].join(",");
       }
 
-      console.log("total value:", totalValue, "values:", values);
       var i = 0,
-          sizeError = 100;
-      while (i++ < iterations && sizeError > 1) {
-        console.log("iteration", i);
+          targetSizeError = 1;
+      while (i++ < iterations) {
+        // console.log("iteration", i);
 
         var deltasByCoord = {};
         projectedArcs.forEach(function(arc) {
@@ -70,15 +69,15 @@
               };
             });
 
-        sizeError = mean(meta.map(function(d) {
+        var sizeError = mean(meta.map(function(d) {
           return d.sizeError;
         }));
 
         var forceReductionFactor = 1 / (1 + sizeError);
 
         // console.log("meta:", meta);
-        console.log("  total area:", totalArea);
-        console.log("  force reduction factor:", forceReductionFactor, "mean error:", sizeError);
+        // console.log("  total area:", totalArea);
+        // console.log("  force reduction factor:", forceReductionFactor, "mean error:", sizeError);
 
         projectedArcs.forEach(function(arc, j) {
           arc.forEach(function(coord, k) {
@@ -130,6 +129,8 @@
         objects.forEach(function(o) {
           updateGeom(o.geometry);
         });
+
+        if (sizeError <= targetSizeError) break;
       }
 
       return objects;
