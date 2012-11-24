@@ -19,16 +19,27 @@
           values = objects.map(value),
           totalValue = sum(values);
 
+      // no iterations; just return the features
       if (iterations <= 0) {
         return objects;
       }
+
+      // project the arcs into screen space
+      var tf = transformer(topology.transform),
+          projectedArcs = topology.arcs.map(function(arc) {
+            var x = 0, y = 0;
+            return arc.map(function(coord) {
+              coord[0] = (x += coord[0]);
+              coord[1] = (y += coord[1]);
+              return projection(tf(coord));
+            });
+          });
 
       // path with identity projection
       var path = d3.geo.path()
         .projection(function(c) { return c; });
 
-      var projectedArcs = carto.project(topology).arcs;
-
+      // our key function hashes [x, y] coordinates
       var Q = 7;
       function key(coord) {
         return [coord[0].toFixed(Q), coord[1].toFixed(Q)].join(",");
@@ -136,17 +147,6 @@
       return objects;
     }
 
-    function sumEncode(arc) {
-      var x = 0, y = 0;
-      return arc.map(function(coord) {
-        var dx = coord[0] - x,
-            dy = coord[1] - y;
-        x = coord[0];
-        y = coord[1];
-        return [dx, dy];
-      });
-    }
-
     var iterations = 8,
         projection = d3.geo.albers(),
         properties = function(id) {
@@ -155,25 +155,6 @@
         value = function(d) {
           return 1;
         };
-
-    carto.project = function(topology) {
-      var tf = transformer(topology.transform);
-      return {
-        objects: copy(topology.objects),
-        transform: {
-          scale: [1, 1],
-          translate: [0, 0]
-        },
-        arcs: topology.arcs.map(function(arc) {
-          var x = 0, y = 0;
-          return arc.map(function(coord) {
-            coord[0] = (x += coord[0]);
-            coord[1] = (y += coord[1]);
-            return projection(tf(coord));
-          });
-        })
-      };
-    };
 
     carto.iterations = function(i) {
       if (arguments.length) {
