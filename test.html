@@ -1,43 +1,28 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Cartogram</title>
+    <title>Census Cartograms with d3 &amp; TopoJSON</title>
     <meta charset="utf-8">
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script src="colorbrewer/colorbrewer.js"></script>
     <script src="topojson.js"></script>
     <script src="cartogram.js"></script>
     <style type="text/css">
-
-      html, body {
-        height: 100%;
-        padding: 0;
-        margin: 0;
-      }
-
-      #map {
-        display: block;
-        width: 100%;
-        height: 100%;
-        background: #f8f8f8;
-      }
-
-      path.state {
-        stroke: #666;
-        stroke-width: .5;
-      }
-
+      @import url(style.css);
     </style>
   </head>
   <body>
-    <form>
-      <p>
-        <label>Scale by: <select id="field"></select></label>
-        <label>in year: <select id="year"></select></label>
-        <span id="status"></span>
-      </p>
-    </form>
-    <svg id="map"></svg>
+    <div id="container">
+      <h1>Census Cartograms with d3 &amp; TopoJSON</h1>
+      <form>
+        <p>
+          <label>Scale by: <select id="field"></select></label>
+          <label>in year: <select id="year"></select></label>
+          <span id="status"></span>
+        </p>
+      </form>
+      <svg id="map"></svg>
+    </div>
     <script>
 
       // field definitions from:
@@ -101,8 +86,8 @@
 
       var map = d3.select("#map"),
           zoom = d3.behavior.zoom()
-            .translate([55, 30])
-            .scale(1)
+            .translate([-15, 32])
+            .scale(.94)
             .scaleExtent([0.5, 10.0])
             .on("zoom", updateZoom),
           layer = map.append("g")
@@ -268,7 +253,7 @@
         return function() {
           var args = arguments;
           clearTimeout(timeout);
-          stat.text("Updating...");
+          stat.text("Calculating...");
           return timeout = setTimeout(function() {
             update.apply(null, arguments);
           }, 10);

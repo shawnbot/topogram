@@ -1,0 +1,31 @@
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+  font-size: 14px;
+  line-height: 1.4em;
+  padding: 0;
+  margin: 0;
+}
+
+#container {
+  width: 800px;
+  margin: 20px auto;
+}
+
+h1 {
+  font-size: 200%;
+  margin: 0 0 10px 0;
+}
+
+form, form > * {
+  margin: 0;
+}
+
+#map {
+  display: block;
+  height: 500px;
+}
+
+path.state {
+  stroke: #666;
+  stroke-width: .5;
+}
