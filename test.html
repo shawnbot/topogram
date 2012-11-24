@@ -8,7 +8,39 @@
     <script src="topojson.js"></script>
     <script src="cartogram.js"></script>
     <style type="text/css">
-      @import url(style.css);
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+        font-size: 14px;
+        line-height: 1.4em;
+        padding: 0;
+        margin: 0;
+      }
+
+      #container {
+        width: 800px;
+        margin: 20px auto;
+      }
+
+      h1 {
+        font-size: 200%;
+        margin: 0 0 10px 0;
+      }
+
+      form, form > * {
+        margin: 0;
+      }
+
+      #map {
+        display: block;
+        height: 500px;
+      }
+
+      path.state {
+        stroke: #666;
+        stroke-width: .5;
+      }
+
     </style>
   </head>
   <body>
@@ -22,6 +54,20 @@
         </p>
       </form>
       <svg id="map"></svg>
+      <div id="about">
+        <h2>About</h2>
+        <p><a href="cartogram.js">cartogram.js</a> is an implementation of <a
+          href="http://chrisman.scg.ulaval.ca/G360/dougenik.pdf">an algoritm to construct continuous area cartograms</a>,
+        by James A. Dougenik, Nicholas R. Chrisman and Duane R. Niemeyer,
+        &copy;1985 by the Association of American Geographers. This example combines <a
+          href="http://github.com/mbostock/topojson">TopoJSON</a>-encoded and simplified
+        boundaries of the United States with <a
+          href="http://www.census.gov/popest/data/state/totals/2011/">2011 US Census population estimates</a>
+        to size each state proportionally.</p>
+
+        <p><a href="http://d3js.org">d3</a> does most of the heavy lifting;
+        color schemes are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
+      </div>
     </div>
     <script>
 
