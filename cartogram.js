@@ -76,6 +76,13 @@
       while (i++ < iterations) {
         // console.log("iteration", i);
 
+        /*
+         * XXX: HACKS AHOY!
+         * Because there's no easy way to convert the projected arcs back into
+         * coordinates that topojson understands, we store the deltas for each
+         * coordinate in this hash, then update all of the feature geometries
+         * individually.
+         */
         var deltasByCoord = {};
         projectedArcs.forEach(function(arc) {
           arc.forEach(function(coord) {
@@ -85,14 +92,16 @@
         });
 
         var areas = objects.map(path.area),
-            totalArea = sum(areas);
+            totalArea = sum(areas),
+            sizeErrors = [],
             meta = objects.map(function(o, j) {
-              var area = Math.abs(areas[j]), // XXX
+              var area = Math.abs(areas[j]), // XXX: why do we have negative areas?
                   v = +values[j],
                   desired = totalArea * v / totalValue,
                   radius = Math.sqrt(area / Math.PI),
                   mass = Math.sqrt(desired / Math.PI) - radius,
                   sizeError = Math.max(area, desired) / Math.min(area, desired);
+              sizeErrors.push(sizeError);
               // console.log(o.id, "@", j, "area:", area, "value:", v, "->", desired, radius, mass, sizeError);
               return {
                 id:         o.id,
@@ -106,11 +115,8 @@
               };
             });
 
-        var sizeError = mean(meta.map(function(d) {
-          return d.sizeError;
-        }));
-
-        var forceReductionFactor = 1 / (1 + sizeError);
+        var sizeError = mean(sizeErrors),
+            forceReductionFactor = 1 / (1 + sizeError);
 
         // console.log("meta:", meta);
         // console.log("  total area:", totalArea);
@@ -228,7 +234,7 @@
     };
 
     carto.features = function(topo, dupe) {
-      // XXX is this necessary?
+      // XXX it shouldn't be necessary to copy the whole structure
       if (dupe) topo = copy(topo);
       return topo.objects[0].geometries.map(function(f) {
         return carto.feature(topo, f);
