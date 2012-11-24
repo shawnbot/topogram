@@ -71,6 +71,16 @@
         return [coord[0].toFixed(Q), coord[1].toFixed(Q)].join(",");
       }
 
+      var deltasByCoord = {};
+      function mapArc(arc) {
+        arc.forEach(mapCoord);
+      }
+
+      function mapCoord(coord) {
+        var k = key(coord);
+        deltasByCoord[k] = [0, 0];
+      }
+
       var i = 0,
           targetSizeError = 1;
       while (i++ < iterations) {
@@ -83,13 +93,8 @@
          * coordinate in this hash, then update all of the feature geometries
          * individually.
          */
-        var deltasByCoord = {};
-        projectedArcs.forEach(function(arc) {
-          arc.forEach(function(coord) {
-            var k = key(coord);
-            deltasByCoord[k] = [0, 0];
-          });
-        });
+        deltasByCoord = {};
+        projectedArcs.forEach(mapArc);
 
         var areas = objects.map(path.area),
             totalArea = sum(areas),
@@ -122,8 +127,8 @@
         // console.log("  total area:", totalArea);
         // console.log("  force reduction factor:", forceReductionFactor, "mean error:", sizeError);
 
-        projectedArcs.forEach(function(arc, j) {
-          arc.forEach(function(coord, k) {
+        projectedArcs.forEach(function(arc) {
+          arc.forEach(function(coord) {
             // create an array of vectors: [x, y]
             var vectors = meta.map(function(d) {
               var centroid =  d.centroid,
@@ -271,11 +276,11 @@
   };
 
   function sum(numbers) {
-    var sum = 0;
+    var total = 0;
     for (var i = numbers.length - 1; i-- > 0;) {
-      sum += numbers[i];
+      total += numbers[i];
     }
-    return sum;
+    return total;
   }
 
   function mean(numbers) {
