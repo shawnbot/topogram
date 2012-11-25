@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Census Cartograms with d3 &amp; TopoJSON</title>
+    <title>Cartograms with d3 &amp; TopoJSON</title>
     <meta charset="utf-8">
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script src="colorbrewer.js"></script>
@@ -40,8 +40,13 @@
         margin: 0;
       }
 
+      #status {
+        color: #999;
+      }
+
       #map {
         display: block;
+        width: 100%;
         height: 500px;
         margin: 20px 0;
       }
@@ -55,7 +60,7 @@
   </head>
   <body>
     <div id="container">
-      <h1>Census Cartograms with d3 &amp; TopoJSON</h1>
+      <h1>Cartograms with d3 &amp; TopoJSON</h1>
       <form>
         <p>
           <label>Scale by: <select id="field"></select></label>
@@ -293,7 +298,7 @@
           .attr("d", carto.path);
 
         var delta = (Date.now() - start) / 1000;
-        stat.text(["took", delta.toFixed(1), "seconds"].join(" "));
+        stat.text(["calculated in", delta.toFixed(1), "seconds"].join(" "));
         body.classed("updating", false);
       }
 
@@ -302,7 +307,7 @@
         return function() {
           var args = arguments;
           clearTimeout(timeout);
-          stat.text("Calculating...");
+          stat.text("calculating...");
           return timeout = setTimeout(function() {
             update.apply(null, arguments);
           }, 10);
