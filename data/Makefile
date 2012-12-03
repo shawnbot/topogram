@@ -6,7 +6,7 @@ all: \
 	us-states-segmentized.topojson
 
 us-states-segmentized.geojson: us-states.geojson
-	$(OGR) -segmentize 0.4 $@ $<
+	$(OGR) -segmentize 0.5 $@ $<
 
 us-states.topojson: us-states.geojson
 	$(TOPOJSON) --simplify 24 -o $@ $<
