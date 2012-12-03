@@ -65,37 +65,37 @@
       var path = d3.geo.path()
         .projection(ident);
 
-      // our key function hashes [x, y] coordinates
-      var Q = 7;
-      function key(coord) {
-        return [coord[0].toFixed(Q), coord[1].toFixed(Q)].join(",");
-      }
-
-      var deltasByCoord = {};
-      function mapArc(arc) {
+      var coords = {};
+      projectedArcs.forEach(function(arc) {
         arc.forEach(mapCoord);
-      }
+      });
 
       function mapCoord(coord) {
-        var k = key(coord);
-        deltasByCoord[k] = [0, 0];
+        var k = String(coord);
+        coords[k] = coord;
       }
+
+      function each(callback) {
+        var t = type(callback), o = {};
+        for (var k in objects) o[k] = t.object(objects[k]);
+        return o;
+      }
+
+      each({
+        line: function(coordinates) {
+          var i = -1, n = coordinates.length,
+              coord, k;
+          while (++i < n) {
+            coord = coordinates[i];
+            k = String(coord);
+            coordinates[i] = coords[k];
+          }
+        }
+      });
 
       var i = 0,
           targetSizeError = 1;
       while (i++ < iterations) {
-        // console.log("iteration", i);
-
-        /*
-         * XXX: HACKS AHOY!
-         * Because there's no easy way to convert the projected arcs back into
-         * coordinates that topojson understands, we store the deltas for each
-         * coordinate in this hash, then update all of the feature geometries
-         * individually.
-         */
-        deltasByCoord = {};
-        projectedArcs.forEach(mapArc);
-
         var areas = objects.map(path.area),
             totalArea = sum(areas),
             sizeErrors = [],
@@ -158,25 +158,9 @@
             delta[0] *= forceReductionFactor;
             delta[1] *= forceReductionFactor;
 
-            var k = key(coord);
-            deltasByCoord[k] = delta;
-
             coord[0] += delta[0];
             coord[1] += delta[1];
           });
-        });
-
-        // updateGeom(geometry) applies the delta for each coordinate
-        var updateGeom = projector(function(coord) {
-          var k = key(coord),
-              delta = deltasByCoord[k];
-          coord[0] += delta[0];
-          coord[1] += delta[1];
-        });
-
-        // update the feature coordinates
-        objects.forEach(function(o) {
-          updateGeom(o.geometry);
         });
 
         // break if we hit the target size error
@@ -336,5 +320,98 @@
     for (var k in o) obj[k] = copy(o[k]);
     return obj;
   }
+
+  function type(types) {
+    for (var type in typeDefaults) {
+      if (!(type in types)) {
+        types[type] = typeDefaults[type];
+      }
+    }
+    types.defaults = typeDefaults;
+    return types;
+  }
+
+  var typeDefaults = {
+
+    Feature: function(feature) {
+      this.geometry(feature.geometry);
+    },
+
+    FeatureCollection: function(collection) {
+      var features = collection.features, i = -1, n = features.length;
+      while (++i < n) this.Feature(features[i]);
+    },
+
+    GeometryCollection: function(collection) {
+      var geometries = collection.geometries, i = -1, n = geometries.length;
+      while (++i < n) this.geometry(geometries[i]);
+    },
+
+    LineString: function(lineString) {
+      this.line(lineString.coordinates);
+    },
+
+    MultiLineString: function(multiLineString) {
+      var coordinates = multiLineString.coordinates, i = -1, n = coordinates.length;
+      while (++i < n) this.line(coordinates[i]);
+    },
+
+    MultiPoint: function(multiPoint) {
+      var coordinates = multiPoint.coordinates, i = -1, n = coordinates.length;
+      while (++i < n) this.point(coordinates[i]);
+    },
+
+    MultiPolygon: function(multiPolygon) {
+      var coordinates = multiPolygon.coordinates, i = -1, n = coordinates.length;
+      while (++i < n) this.polygon(coordinates[i]);
+    },
+
+    Point: function(point) {
+      this.point(point.coordinates);
+    },
+
+    Polygon: function(polygon) {
+      this.polygon(polygon.coordinates);
+    },
+
+    object: function(object) {
+      return typeObjects.hasOwnProperty(object.type)
+          ? this[object.type](object)
+          : this.geometry(object);
+    },
+
+    geometry: function(geometry) {
+      return typeGeometries.hasOwnProperty(geometry.type)
+          ? this[geometry.type](geometry)
+          : null;
+    },
+
+    point: function() {},
+
+    line: function(coordinates) {
+      var i = -1, n = coordinates.length;
+      while (++i < n) this.point(coordinates[i]);
+    },
+
+    polygon: function(coordinates) {
+      var i = -1, n = coordinates.length;
+      while (++i < n) this.line(coordinates[i]);
+    }
+  };
+
+  var typeGeometries = {
+    LineString: 1,
+    MultiLineString: 1,
+    MultiPoint: 1,
+    MultiPolygon: 1,
+    Point: 1,
+    Polygon: 1
+  };
+
+  var typeObjects = {
+    Feature: 1,
+    FeatureCollection: 1,
+    GeometryCollection: 1
+  };
 
 })(this);
