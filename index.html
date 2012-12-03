@@ -56,6 +56,18 @@
         stroke-width: .5;
       }
 
+      path.state:hover {
+        stroke: #000;
+      }
+
+      form {
+        font-size: 120%;
+      }
+
+      select {
+        font-size: inherit;
+      }
+
     </style>
   </head>
   <body>
@@ -96,7 +108,7 @@
       // field definitions from:
       // <http://www.census.gov/popest/data/national/totals/2011/files/NST-EST2011-alldata.pdf>
       var fields = [
-            {name: "(none)", id: "none"},
+            {name: "(no scale)", id: "none"},
             // {name: "Census Population", id: "censuspop", key: "CENSUS%dPOP", years: [2010]},
             // {name: "Estimate Base", id: "censuspop", key: "ESTIMATESBASE%d", years: [2010]},
             {name: "Population Estimate", id: "popest", key: "POPESTIMATE%d"},
@@ -229,6 +241,7 @@
             })
             .attr("fill", "#fafafa")
             .attr("d", path);
+
         states.append("title");
 
         parseHash();
