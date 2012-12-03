@@ -28,13 +28,13 @@
    */
   d3.cartogram = function() {
 
-    function carto(topology) {
+    function carto(topology, geometries) {
       // copy it first
       topology = copy(topology);
 
       // objects are projected into screen coordinates
       var projectGeometry = projector(projection),
-          objects = carto.features(topology, false).map(function(feature) {
+          objects = carto.features(topology, geometries).map(function(feature) {
             var geom = feature.geometry;
             feature.geometry = {
               type: geom.type,
@@ -167,7 +167,10 @@
         if (sizeError <= targetSizeError) break;
       }
 
-      return objects;
+      return {
+        features: objects,
+        arcs: projectedArcs
+      };
     }
 
     var iterations = 8,
@@ -222,10 +225,8 @@
       };
     };
 
-    carto.features = function(topo, dupe) {
-      // XXX it shouldn't be necessary to copy the whole structure
-      if (dupe) topo = copy(topo);
-      return topo.objects[0].geometries.map(function(f) {
+    carto.features = function(topo, geometries) {
+      return geometries.map(function(f) {
         return carto.feature(topo, f);
       });
     };

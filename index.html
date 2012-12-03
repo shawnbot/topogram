@@ -174,6 +174,8 @@
 
       var proj = d3.geo.albersUsa(),
           topology,
+          geometries,
+          rawData,
           dataById = {},
           carto = d3.cartogram()
             .iterations(iterations)
@@ -189,21 +191,26 @@
         parseHash();
       };
 
-      d3.json("data/us-states.json", function(topo) {
-        topology = topo;
-        d3.csv("data/nst_2011.csv", function(data) {
+      var url = "data/" +
+        (location.search.length > 1
+          ? location.search.substr(1)
+          : "us-states.topojson");
 
+      d3.json(url, function(topo) {
+        topology = topo;
+        geometries = topology.objects.states.geometries;
+        d3.csv("data/nst_2011.csv", function(data) {
+          rawData = data;
           dataById = d3.nest()
-            .key(function(d) { return d.STATE; })
+            .key(function(d) { return d.NAME; })
             .rollup(function(d) { return d[0]; })
             .map(data);
-
           init();
         });
       });
 
       function init() {
-        var features = carto.features(topology),
+        var features = carto.features(topology, geometries),
             path = d3.geo.path()
               .projection(proj);
 
@@ -225,7 +232,7 @@
         stat.text("");
         body.classed("updating", false);
 
-        var features = carto.features(topology);
+        var features = carto.features(topology, geometries),
             path = d3.geo.path()
               .projection(proj);
 
@@ -281,7 +288,7 @@
         });
 
         // generate the new features, pre-projected
-        var features = carto(topology);
+        var features = carto(topology, geometries).features;
 
         // update the data
         states.data(features)
