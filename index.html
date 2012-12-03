@@ -80,10 +80,12 @@
         <a href="http://www.naturalearthdata.com/downloads/110m-cultural-vectors/">Natural Earth</a>
         with
         <a href="http://www.census.gov/popest/data/state/totals/2011/">2011 US Census population estimates</a>
-        to size each state proportionally.</p>
+        to size each state proportionally. There's also a
+        <a id="segmentized-link" href="?segmentized">segmentized</a>
+        version, which distorts the shapes more fluidly.</p>
 
         <p><a href="http://d3js.org">d3</a> does most of the heavy lifting;
-        color are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
+        colors are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
       </div>
 
       <a href="https://github.com/shawnbot/d3-cartogram/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
@@ -195,11 +197,10 @@
         parseHash();
       };
 
-      var url = "data/" +
-        (location.search.length > 1
-          ? location.search.substr(1)
-          : "us-states.topojson");
-
+      var segmentized = location.search === "?segmentized",
+          url = ["data",
+            segmentized ? "us-states-segmentized.topojson" : "us-states.topojson"
+          ].join("/");
       d3.json(url, function(topo) {
         topology = topo;
         geometries = topology.objects.states.geometries;
@@ -362,6 +363,9 @@
 
           deferredUpdate();
           location.replace("#" + [field.id, year].join("/"));
+
+          d3.select("#segmentized-link")
+            .attr("href", "?segmentized" + location.hash);
         }
       }
 
