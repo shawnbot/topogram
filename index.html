@@ -231,7 +231,8 @@
 
         states.data(features)
           .transition()
-            .duration(1000)
+            .duration(750)
+            .ease("linear")
             .attr("fill", "#fafafa")
             .attr("d", path);
 
@@ -290,7 +291,7 @@
             });
 
         states.transition()
-          .duration(1000)
+          .duration(750)
           .ease("linear")
           .attr("fill", function(d) {
             return color(value(d));
