@@ -81,8 +81,9 @@
         with
         <a href="http://www.census.gov/popest/data/state/totals/2011/">2011 US Census population estimates</a>
         to size each state proportionally. There's also a
-        <a id="segmentized-link" href="?segmentized">segmentized</a>
-        version, which distorts the shapes more fluidly.</p>
+        <a class="hashish" href="?segmentized">segmentized</a>
+        version, which distorts the shapes more fluidly than the
+        <a class="hashish" href="?">original</a>.</p>
 
         <p><a href="http://d3js.org">d3</a> does most of the heavy lifting;
         colors are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
@@ -327,6 +328,11 @@
         };
       })();
 
+      var hashish = d3.selectAll("a.hashish")
+        .datum(function() {
+          return this.href;
+        });
+
       function parseHash() {
         var parts = location.hash.substr(1).split("/"),
             desiredFieldId = parts[0],
@@ -364,8 +370,9 @@
           deferredUpdate();
           location.replace("#" + [field.id, year].join("/"));
 
-          d3.select("#segmentized-link")
-            .attr("href", "?segmentized" + location.hash);
+          hashish.attr("href", function(href) {
+            return href + location.hash;
+          });
         }
       }
 
