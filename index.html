@@ -99,8 +99,10 @@
         which distorts the shapes more fluidly than the
         <a class="hashish" href="?">original</a>.</p>
 
-        <p><a href="http://d3js.org">d3</a> does most of the heavy lifting;
-        colors are courtesy of <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
+        <p>Designed and built but <a href="http://stamen.com/studio/shawn">Shawn Allen</a> at
+        <a href="http://stamen.com">Stamen</a>.
+        <a href="http://d3js.org">d3.js</a> does most of the heavy lifting;
+        colors by <a href="http://colorbrewer2.org">colorbrewer</a>.</p>
       </div>
 
       <a href="https://github.com/shawnbot/d3-cartogram/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
@@ -171,7 +173,7 @@
 
       var map = d3.select("#map"),
           zoom = d3.behavior.zoom()
-            .translate([-29, 32])
+            .translate([-38, 32])
             .scale(.94)
             .scaleExtent([0.5, 10.0])
             .on("zoom", updateZoom),
