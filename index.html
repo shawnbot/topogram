@@ -210,15 +210,12 @@
           "scale(" + [scale, scale] + ")");
       }
 
-      var iterations = parseInt(location.search.substr(1)) || 8;
-
       var proj = d3.geo.albersUsa(),
           topology,
           geometries,
           rawData,
           dataById = {},
           carto = d3.cartogram()
-            .iterations(iterations)
             .projection(proj)
             .properties(function(d) {
               return dataById[d.id];
