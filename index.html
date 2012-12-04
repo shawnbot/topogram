@@ -128,25 +128,29 @@
 
       // field definitions from:
       // <http://www.census.gov/popest/data/national/totals/2011/files/NST-EST2011-alldata.pdf>
-      var fields = [
+      var percent = (function() {
+            var fmt = d3.format(".2f");
+            return function(n) { return fmt(n) + "%"; };
+          })(),
+          fields = [
             {name: "(no scale)", id: "none"},
             // {name: "Census Population", id: "censuspop", key: "CENSUS%dPOP", years: [2010]},
             // {name: "Estimate Base", id: "censuspop", key: "ESTIMATESBASE%d", years: [2010]},
             {name: "Population Estimate", id: "popest", key: "POPESTIMATE%d"},
-            {name: "Population Change", id: "popchange", key: "NPOPCHG_%d", format: "+0,"},
+            {name: "Population Change", id: "popchange", key: "NPOPCHG_%d", format: "+,"},
             {name: "Births", id: "births", key: "BIRTHS%d"},
             {name: "Deaths", id: "deaths", key: "DEATHS%d"},
-            {name: "Natural Increase", id: "natinc", key: "NATURALINC%d"},
-            {name: "Int'l Migration", id: "intlmig", key: "INTERNATIONALMIG%d", format: "+0,"},
-            {name: "Domestic Migration", id: "domesticmig", key: "DOMESTICMIG%d", format: "+0,"},
-            {name: "Net Migration", id: "netmig", key: "NETMIG%d", format: "+0,"},
-            {name: "Residual", id: "residual", key: "RESIDUAL%d"},
-            {name: "Birth Rate", id: "birthrate", key: "RBIRTH%d", years: [2011], format: "0,%"},
-            {name: "Death Rate", id: "deathrate", key: "RDEATH%d", years: [2011], format: "0,%"},
-            {name: "Natural Increase Rate", id: "natincrate", key: "RNATURALINC%d", years: [2011], format: "+0,%"},
-            {name: "Int'l Migration Rate", id: "intlmigrate", key: "RINTERNATIONALMIG%d", years: [2011], format: "+0,%"},
-            {name: "Net Domestic Migration Rate", id: "domesticmigrate", key: "RDOMESTICMIG%d", years: [2011], format: "+0,%"},
-            {name: "Net Migration Rate", id: "netmigrate", key: "RNETMIG%d", years: [2011], format: "+0,%"},
+            {name: "Natural Increase", id: "natinc", key: "NATURALINC%d", format: "+,"},
+            {name: "Int'l Migration", id: "intlmig", key: "INTERNATIONALMIG%d", format: "+,"},
+            {name: "Domestic Migration", id: "domesticmig", key: "DOMESTICMIG%d", format: "+,"},
+            {name: "Net Migration", id: "netmig", key: "NETMIG%d", format: "+,"},
+            {name: "Residual", id: "residual", key: "RESIDUAL%d", format: "+,"},
+            {name: "Birth Rate", id: "birthrate", key: "RBIRTH%d", years: [2011], format: percent},
+            {name: "Death Rate", id: "deathrate", key: "RDEATH%d", years: [2011], format: percent},
+            {name: "Natural Increase Rate", id: "natincrate", key: "RNATURALINC%d", years: [2011], format: percent},
+            {name: "Int'l Migration Rate", id: "intlmigrate", key: "RINTERNATIONALMIG%d", years: [2011], format: percent},
+            {name: "Net Domestic Migration Rate", id: "domesticmigrate", key: "RDOMESTICMIG%d", years: [2011], format: percent},
+            {name: "Net Migration Rate", id: "netmigrate", key: "RNETMIG%d", years: [2011], format: percent},
           ],
           years = [2010, 2011],
           fieldsById = d3.nest()
@@ -291,7 +295,9 @@
         body.classed("updating", true);
 
         var key = field.key.replace("%d", year),
-            fmt = d3.format(field.format || ",0"),
+            fmt = (typeof field.format === "function")
+              ? field.format
+              : d3.format(field.format || ","),
             value = function(d) {
               return +d.properties[key];
             },
@@ -304,15 +310,11 @@
             lo = values[0],
             hi = values[values.length - 1];
 
-        var diverging = lo < 0,
-            color = d3.scale.linear()
-              .range(colors);
-        if (diverging) {
-          color.domain([lo, 0, hi]);
-          map.classed("diverging", true);
-        } else {
-          color.domain([lo, d3.mean(values), hi]);
-        }
+        var color = d3.scale.linear()
+          .range(colors)
+          .domain(lo < 0
+            ? [lo, 0, hi]
+            : [lo, d3.mean(values), hi]);
 
         // normalize the scale to positive numbers
         var scale = d3.scale.linear()
