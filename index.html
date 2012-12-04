@@ -130,6 +130,8 @@
     </div>
     <script>
 
+      // hide the form if the browser doesn't do SVG,
+      // (then just let everything else fail)
       if (!document.createElementNS) {
         document.getElementsByTagName("form")[0].style.display = "none";
       }
