@@ -3,6 +3,7 @@
   <head>
     <title>Cartograms with d3 &amp; TopoJSON</title>
     <meta charset="utf-8">
+    <meta property="og:image" content="placeholder.png">
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script src="colorbrewer.js"></script>
     <script src="topojson.js"></script>
@@ -45,6 +46,7 @@
       }
 
       #map {
+        background: #fff;
         display: block;
         width: 100%;
         height: 500px;
@@ -68,6 +70,18 @@
         font-size: inherit;
       }
 
+      #map-container {
+        text-align: center;
+        position: relative;
+      }
+
+      #placeholder {
+        position: absolute;
+        z-index: -1;
+        display: block;
+        margin: 20px auto;
+      }
+
     </style>
   </head>
   <body>
@@ -80,7 +94,10 @@
           <span id="status"></span>
         </p>
       </form>
-      <svg id="map"></svg>
+      <div id="map-container">
+        <img id="placeholder" src="placeholder.png">
+        <svg id="map"></svg>
+      </div>
       <div id="about">
         <h2>About</h2>
         <p><a href="cartogram.js">cartogram.js</a> is a JavaScript implementation of
