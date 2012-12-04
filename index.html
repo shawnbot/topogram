@@ -45,11 +45,18 @@
         color: #999;
       }
 
+      #map-container {
+        height: 500px;
+        text-align: center;
+        position: relative;
+      }
+
       #map {
+        position: absolute;
         background: #fff;
         display: block;
         width: 100%;
-        height: 500px;
+        height: 100%;
         margin: 20px 0;
       }
 
@@ -70,16 +77,12 @@
         font-size: inherit;
       }
 
-      #map-container {
-        text-align: center;
-        position: relative;
-      }
-
       #placeholder {
         position: absolute;
         z-index: -1;
         display: block;
-        margin: 20px auto;
+        left: 18px;
+        top: 41px;
       }
 
     </style>
