@@ -50,8 +50,7 @@
       var path = d3.geo.path()
         .projection(ident);
 
-      var objects = object({transform: {scale: [1, 1], translate: [0, 0]}, arcs: projectedArcs},
-          {type: "GeometryCollection", geometries: geometries})
+      var objects = object(projectedArcs, {type: "GeometryCollection", geometries: geometries})
           .geometries.map(function(geom) {
             return {
               type: "Feature",
@@ -298,9 +297,7 @@
     return obj;
   }
 
-  function object(topology, o) {
-    var arcs = topology.arcs;
-
+  function object(arcs, o) {
     function arc(i, points) {
       if (points.length) points.pop();
       for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length; k < n; ++k) {
