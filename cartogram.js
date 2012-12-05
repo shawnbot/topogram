@@ -1,7 +1,7 @@
 (function(exports) {
 
   /*
-   * d3.cartogram is a d3-friendly implementation of An Algorith to Construct
+   * d3.cartogram is a d3-friendly implementation of An Algorithm to Construct
    * Continuous Area Cartograms:
    *
    * <http://chrisman.scg.ulaval.ca/G360/dougenik.pdf>
@@ -33,22 +33,7 @@
       topology = copy(topology);
 
       // objects are projected into screen coordinates
-      var projectGeometry = projector(projection),
-          objects = carto.features(topology, geometries).map(function(feature) {
-            var geom = feature.geometry;
-            feature.geometry = {
-              type: geom.type,
-              coordinates: projectGeometry(feature.geometry)
-            };
-            return feature;
-          }),
-          values = objects.map(value),
-          totalValue = sum(values);
-
-      // no iterations; just return the features
-      if (iterations <= 0) {
-        return objects;
-      }
+      var projectGeometry = projector(projection);
 
       // project the arcs into screen space
       var tf = transformer(topology.transform),
@@ -65,33 +50,23 @@
       var path = d3.geo.path()
         .projection(ident);
 
-      var coords = {};
-      projectedArcs.forEach(function(arc) {
-        arc.forEach(mapCoord);
-      });
+      var objects = object(projectedArcs, {type: "GeometryCollection", geometries: geometries})
+          .geometries.map(function(geom) {
+            return {
+              type: "Feature",
+              id: geom.id,
+              properties: properties.call(null, geom, topology),
+              geometry: geom
+            };
+          });
 
-      function mapCoord(coord) {
-        var k = String(coord);
-        coords[k] = coord;
+      var values = objects.map(value),
+          totalValue = sum(values);
+
+      // no iterations; just return the features
+      if (iterations <= 0) {
+        return objects;
       }
-
-      function each(callback) {
-        var t = type(callback), o = {};
-        for (var k in objects) o[k] = t.object(objects[k]);
-        return o;
-      }
-
-      each({
-        line: function(coordinates) {
-          var i = -1, n = coordinates.length,
-              coord, k;
-          while (++i < n) {
-            coord = coordinates[i];
-            k = String(coord);
-            coordinates[i] = coords[k];
-          }
-        }
-      });
 
       var i = 0,
           targetSizeError = 1;
@@ -322,97 +297,45 @@
     return obj;
   }
 
-  function type(types) {
-    for (var type in typeDefaults) {
-      if (!(type in types)) {
-        types[type] = typeDefaults[type];
+  function object(arcs, o) {
+    function arc(i, points) {
+      if (points.length) points.pop();
+      for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length; k < n; ++k) {
+        points.push(a[k]);
       }
+      if (i < 0) reverse(points, n);
     }
-    types.defaults = typeDefaults;
-    return types;
+
+    function line(arcs) {
+      var points = [];
+      for (var i = 0, n = arcs.length; i < n; ++i) arc(arcs[i], points);
+      return points;
+    }
+
+    function polygon(arcs) {
+      return arcs.map(line);
+    }
+
+    function geometry(o) {
+      o = Object.create(o);
+      o.coordinates = geometryType[o.type](o.arcs);
+      return o;
+    }
+
+    var geometryType = {
+      LineString: line,
+      MultiLineString: polygon,
+      Polygon: polygon,
+      MultiPolygon: function(arcs) { return arcs.map(polygon); }
+    };
+
+    return o.type === "GeometryCollection"
+        ? (o = Object.create(o), o.geometries = o.geometries.map(geometry), o)
+        : geometry(o);
   }
 
-  var typeDefaults = {
-
-    Feature: function(feature) {
-      this.geometry(feature.geometry);
-    },
-
-    FeatureCollection: function(collection) {
-      var features = collection.features, i = -1, n = features.length;
-      while (++i < n) this.Feature(features[i]);
-    },
-
-    GeometryCollection: function(collection) {
-      var geometries = collection.geometries, i = -1, n = geometries.length;
-      while (++i < n) this.geometry(geometries[i]);
-    },
-
-    LineString: function(lineString) {
-      this.line(lineString.coordinates);
-    },
-
-    MultiLineString: function(multiLineString) {
-      var coordinates = multiLineString.coordinates, i = -1, n = coordinates.length;
-      while (++i < n) this.line(coordinates[i]);
-    },
-
-    MultiPoint: function(multiPoint) {
-      var coordinates = multiPoint.coordinates, i = -1, n = coordinates.length;
-      while (++i < n) this.point(coordinates[i]);
-    },
-
-    MultiPolygon: function(multiPolygon) {
-      var coordinates = multiPolygon.coordinates, i = -1, n = coordinates.length;
-      while (++i < n) this.polygon(coordinates[i]);
-    },
-
-    Point: function(point) {
-      this.point(point.coordinates);
-    },
-
-    Polygon: function(polygon) {
-      this.polygon(polygon.coordinates);
-    },
-
-    object: function(object) {
-      return typeObjects.hasOwnProperty(object.type)
-          ? this[object.type](object)
-          : this.geometry(object);
-    },
-
-    geometry: function(geometry) {
-      return typeGeometries.hasOwnProperty(geometry.type)
-          ? this[geometry.type](geometry)
-          : null;
-    },
-
-    point: function() {},
-
-    line: function(coordinates) {
-      var i = -1, n = coordinates.length;
-      while (++i < n) this.point(coordinates[i]);
-    },
-
-    polygon: function(coordinates) {
-      var i = -1, n = coordinates.length;
-      while (++i < n) this.line(coordinates[i]);
-    }
-  };
-
-  var typeGeometries = {
-    LineString: 1,
-    MultiLineString: 1,
-    MultiPoint: 1,
-    MultiPolygon: 1,
-    Point: 1,
-    Polygon: 1
-  };
-
-  var typeObjects = {
-    Feature: 1,
-    FeatureCollection: 1,
-    GeometryCollection: 1
-  };
+  function reverse(array, n) {
+    var t, j = array.length, i = j - n; while (i < --j) t = array[i], array[i++] = array[j], array[j] = t;
+  }
 
 })(this);
