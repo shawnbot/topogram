@@ -1,7 +1,7 @@
 (function(exports) {
 
   /*
-   * d3.cartogram is a d3-friendly implementation of An Algorith to Construct
+   * d3.cartogram is a d3-friendly implementation of An Algorithm to Construct
    * Continuous Area Cartograms:
    *
    * <http://chrisman.scg.ulaval.ca/G360/dougenik.pdf>
