@@ -278,11 +278,6 @@
     };
   }
 
-  // identity projection
-  function ident(c) {
-    return c;
-  }
-
   function copy(o) {
     return (o instanceof Array)
       ? o.map(copy)
