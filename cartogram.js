@@ -236,8 +236,9 @@
   };
 
   function sum(numbers) {
-    var total = 0;
-    for (var i = numbers.length - 1; i-- > 0;) {
+    var len = numbers.length,
+        total = 0;
+    for (var i = 0; i < len; i++) {
       total += numbers[i];
     }
     return total;
