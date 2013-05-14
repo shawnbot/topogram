@@ -26,8 +26,29 @@
    *      .attr("d", cartogram.path);
    * });
    */
+   
   d3.cartogram = function() {
-
+/*
+   NEVER DO THIS!!!!!!!!!!!!!!!!!!!!!!!
+   */
+   Array.prototype.qMap = function(fun) {
+      var len = this.length;
+      var out = new Array(len);
+      var i = 0;
+      while (i < len) {
+        out[i] = fun(this[i], i, this);
+        i++;
+      }
+      return out;
+    }
+    Array.prototype.each=function(fun){
+        var len = this.length;
+        var i = 0;
+      while (i < len) {
+        fun(this[i], i, this);
+        i++;
+      }
+    }
     function carto(topology, geometries) {
       // copy it first
       topology = copy(topology);
@@ -37,12 +58,12 @@
 
       // project the arcs into screen space
       var tf = transformer(topology.transform),
-          projectedArcs = topology.arcs.map(function(arc) {
+          projectedArcs = topology.arcs.qMap(function(arc) {
             var x = 0, y = 0;
-            return arc.map(function(coord) {
+            return arc.qMap(function(coord) {
               coord[0] = (x += coord[0]);
               coord[1] = (y += coord[1]);
-              return projection(tf(coord));
+              return tf(coord);
             });
           });
 
@@ -51,18 +72,17 @@
         .projection(null);
 
       var objects = object(projectedArcs, {type: "GeometryCollection", geometries: geometries})
-          .geometries.map(function(geom) {
+          .geometries.qMap(function(geom) {
             return {
               type: "Feature",
-              id: geom.id,
-              properties: properties.call(null, geom, topology),
+              id: geom.properties.id,
+              properties: geom.properties,
               geometry: geom
             };
           });
 
-      var values = objects.map(value),
-          totalValue = d3.sum(values);
-
+      var values = objects.qMap(value),
+          totalValue = values.reduce(function(a,b){return a + b;});
       // no iterations; just return the features
       if (iterations <= 0) {
         return objects;
@@ -72,7 +92,7 @@
           targetSizeError = 1;
       while (i++ < iterations) {
         var areas = objects.map(path.area),
-            totalArea = d3.sum(areas),
+            totalArea = sum(areas),
             sizeErrors = [],
             meta = objects.map(function(o, j) {
               var area = Math.abs(areas[j]), // XXX: why do we have negative areas?
@@ -95,7 +115,7 @@
               };
             });
 
-        var sizeError = d3.mean(sizeErrors),
+        var sizeError = mean(sizeErrors),
             forceReductionFactor = 1 / (1 + sizeError);
 
         // console.log("meta:", meta);
@@ -149,7 +169,6 @@
     }
 
     var iterations = 8,
-        projection = d3.geo.albers(),
         properties = function(id) {
           return {};
         },
@@ -201,7 +220,7 @@
     };
 
     carto.features = function(topo, geometries) {
-      return geometries.map(function(f) {
+      return geometries.qMap(function(f) {
         return carto.feature(topo, f);
       });
     };
@@ -236,7 +255,7 @@
   };
 
   function angle(a, b) {
-    return Math.atan2(b[1] - a[1], b[0] - a[0]);
+      return Math.atan2(b[1] - a[1], b[0] - a[0]);
   }
 
   function distance(a, b) {
@@ -249,16 +268,16 @@
     var types = {
       Point: proj,
       LineString: function(coords) {
-        return coords.map(proj);
+        return coords.qMap(proj);
       },
       MultiLineString: function(arcs) {
-        return arcs.map(types.LineString);
+        return arcs.qMap(types.LineString);
       },
       Polygon: function(rings) {
-        return rings.map(types.LineString);
+        return rings.qMap(types.LineString);
       },
       MultiPolygon: function(rings) {
-        return rings.map(types.Polygon);
+        return rings.qMap(types.Polygon);
       }
     };
     return function(geom) {
@@ -268,7 +287,7 @@
 
   function copy(o) {
     return (o instanceof Array)
-      ? o.map(copy)
+      ? o.qMap(copy)
       : (typeof o === "string" || typeof o === "number")
         ? o
         : copyObject(o);
@@ -278,6 +297,15 @@
     var obj = {};
     for (var k in o) obj[k] = copy(o[k]);
     return obj;
+  }
+function sum(numbers) {
+    var total = 0;
+    for (var i = numbers.length - 1; i-- > 0;) {
+      total += numbers[i];
+    }
+    return total;
+  } function mean(numbers) {
+    return sum(numbers) / numbers.length;
   }
 
   function object(arcs, o) {
@@ -296,7 +324,7 @@
     }
 
     function polygon(arcs) {
-      return arcs.map(line);
+      return arcs.qMap(line);
     }
 
     function geometry(o) {
@@ -309,11 +337,11 @@
       LineString: line,
       MultiLineString: polygon,
       Polygon: polygon,
-      MultiPolygon: function(arcs) { return arcs.map(polygon); }
+      MultiPolygon: function(arcs) { return arcs.qMap(polygon); }
     };
 
     return o.type === "GeometryCollection"
-        ? (o = Object.create(o), o.geometries = o.geometries.map(geometry), o)
+        ? (o = Object.create(o), o.geometries = o.geometries.qMap(geometry), o)
         : geometry(o);
   }
 
