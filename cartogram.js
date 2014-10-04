@@ -18,7 +18,7 @@
    *    return Math.random() * 100;
    *  });
    * d3.json("path/to/topology.json", function(topology) {
-   *  var features = cartogram(topology);
+   *  var features = cartogram(topology, topology.objects.OBJECTNAME.geometries);
    *  d3.select("svg").selectAll("path")
    *    .data(features)
    *    .enter()
