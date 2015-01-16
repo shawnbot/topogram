@@ -201,7 +201,7 @@
         properties: properties.call(null, geom, topology),
         geometry: {
           type: geom.type,
-          coordinates: topojson.object(topology, geom).coordinates
+          coordinates: topojson.feature(topology, geom).geometry.coordinates
         }
       };
     };
