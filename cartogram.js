@@ -18,7 +18,7 @@
    *    return Math.random() * 100;
    *  });
    * d3.json("path/to/topology.json", function(topology) {
-   *  var features = cartogram(topology, topology.objects.OBJECTNAME.geometries);
+   *  var features = cartogram(topology);
    *  d3.select("svg").selectAll("path")
    *    .data(features)
    *    .enter()
@@ -46,7 +46,7 @@
             while(i1<len1){
               topology.arcs[i2][i1][0] = (x += topology.arcs[i2][i1][0]);
               topology.arcs[i2][i1][1] = (y += topology.arcs[i2][i1][1]);
-              out1[i1] = projection === null ? tf(topology.arcs[i2][i1]) : projection(tf(topology.arcs[i2][i1]));
+              out1[i1] = projection(tf(topology.arcs[i2][i1]));
               i1++;
             }
             projectedArcs[i2++]=out1;
@@ -57,7 +57,7 @@
       var path = d3.geo.path()
         .projection(null);
 
-      var objects = object(projectedArcs, {type: "GeometryCollection", geometries: geometries})
+      var objects = object(projectedArcs, {type: "GeometryCollection", geometries: geometries.geometries})
           .geometries.map(function(geom) {
             return {
               type: "Feature",
@@ -201,15 +201,19 @@
         properties: properties.call(null, geom, topology),
         geometry: {
           type: geom.type,
-          coordinates: topojson.feature(topology, geom).geometry.coordinates
+          coordinates: topojson.object(topology, geom).coordinates
         }
       };
     };
 
     carto.features = function(topo, geometries) {
-      return geometries.map(function(f) {
-        return carto.feature(topo, f);
+      var features = topojson.feature(topo, geometries);
+      features.features.map(function(d){
+        if (typeof properties(d) == "object" ){
+          Object.keys(properties(d)).map(function(k){d.properties[k] = properties(d)[k]})
+        }
       });
+      return features;
     };
 
     carto.properties = function(props) {
