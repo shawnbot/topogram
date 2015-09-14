@@ -207,8 +207,8 @@
     };
 
     carto.features = function(topo, geometries) {
-      var features = topojson.feature(topo, geometries);
-      features.features.map(function(d){
+      var features = topojson.feature(topo, geometries).features;
+      features.map(function(d){
         if (typeof properties(d) == "object" ){
           Object.keys(properties(d)).map(function(k){d.properties[k] = properties(d)[k]})
         }
