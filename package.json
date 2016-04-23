@@ -1,0 +1,29 @@
+{
+  "name": "topogram",
+  "version": "0.1.0",
+  "description": "Create continuous area cartograms from TopoJSON",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shawnbot/topogram.git"
+  },
+  "keywords": [
+    "topojson",
+    "cartogram",
+    "geo"
+  ],
+  "author": "Shawn Allen <shawn.allen@hush.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shawnbot/topogram/issues"
+  },
+  "homepage": "https://github.com/shawnbot/topogram#readme",
+  "dependencies": {
+    "d3": "^3.5.16",
+    "deep-copy": "^1.1.0",
+    "topojson": "^1.6.24"
+  }
+}
