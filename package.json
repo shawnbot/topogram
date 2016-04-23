@@ -6,6 +6,9 @@
   "scripts": {
     "test": "mocha"
   },
+  "bin": {
+    "topogram": "./bin/topogram.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shawnbot/topogram.git"
