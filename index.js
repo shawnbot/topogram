@@ -62,7 +62,7 @@ module.exports = function() {
       var meta = objects.map(function(o, j) {
         // FIXME: why do we have negative areas?
         var area = Math.abs(areas[j]);
-        var v = +values[j],
+        var v = +values[j];
         var desired = totalArea * v / totalValue;
         var radius = Math.sqrt(area / Math.PI);
         var mass = Math.sqrt(desired / Math.PI) - radius;
