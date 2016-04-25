@@ -248,7 +248,7 @@
           ].join("/");
       d3.json(url, function(topo) {
         topology = topo;
-        geometries = topology.objects.states.geometries;
+        geometries = topology.objects.states;
         d3.csv("data/nst_2011.csv", function(data) {
           rawData = data;
           dataById = d3.nest()
