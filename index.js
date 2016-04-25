@@ -21,7 +21,7 @@ module.exports = function() {
   var path = d3.geo.path()
     .projection(null);
 
-  var cartogram = function(topology, geometries) {
+  var topogram = function(topology, geometries) {
     if (debug) timer.start('copy');
     topology = copy(topology);
     if (debug) timer.end('copy');
@@ -139,36 +139,36 @@ module.exports = function() {
   };
 
   // expose the path directly, for convenience
-  cartogram.path = path;
+  topogram.path = path;
 
-  cartogram.iterations = function(i) {
+  topogram.iterations = function(i) {
     if (arguments.length) {
       iterations = Number(i) || 0;
-      return cartogram;
+      return topogram;
     } else {
       return iterations;
     }
   };
 
-  cartogram.value = function(v) {
+  topogram.value = function(v) {
     if (arguments.length) {
       value = d3.functor(v);
-      return cartogram;
+      return topogram;
     } else {
       return value;
     }
   };
 
-  cartogram.projection = function(p) {
+  topogram.projection = function(p) {
     if (arguments.length) {
       projection = p;
-      return cartogram;
+      return topogram;
     } else {
       return projection;
     }
   };
 
-  cartogram.feature = function(topology, geom) {
+  topogram.feature = function(topology, geom) {
     return {
       type: "Feature",
       id: geom.id,
@@ -180,29 +180,29 @@ module.exports = function() {
     };
   };
 
-  cartogram.features = function(topo, geometries) {
+  topogram.features = function(topo, geometries) {
     return geometries.map(function(f) {
-      return cartogram.feature(topo, f);
+      return topogram.feature(topo, f);
     });
   };
 
-  cartogram.properties = function(props) {
+  topogram.properties = function(props) {
     if (arguments.length) {
       properties = d3.functor(props);
-      return cartogram;
+      return topogram;
     } else {
       return properties;
     }
   };
 
-  cartogram.debug = function(d) {
+  topogram.debug = function(d) {
     if (arguments.length) {
       debug = !!d;
-      return cartogram;
+      return topogram;
     } else {
       return debug;
     }
   };
 
-  return cartogram;
+  return topogram;
 };
