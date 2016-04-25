@@ -11,6 +11,8 @@ var yargs = require('yargs')
   .describe('value', 'The value function, either as a property expression or fat arrow function')
   .alias('v', 'value')
   .describe('properties', 'The properties function, probably as a fat arrow, e.g. "f => {{name: f.properties.name}}"')
+  .describe('debug', 'Output timing and other debug messages')
+  .boolean('debug')
   .alias('p', 'properties')
   .alias('h', 'help');
 
@@ -32,6 +34,10 @@ if (options.value) {
 
 if (options.properties) {
   cartogram.properties(fof(options.properties));
+}
+
+if (options.debug) {
+  cartogram.debug(true);
 }
 
 fs.readFile(input, {encoding: 'utf8'}, function(error, input) {
