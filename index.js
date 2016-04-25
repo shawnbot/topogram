@@ -5,13 +5,14 @@ var copy = require('deep-copy');
 var projectArcs = require('./lib/projectArcs');
 var objectify = require('./lib/objectify');
 var math = require('./lib/math');
+var timer = require('./lib/timer');
 
 module.exports = function() {
-
   var iterations = 8;
+  var debug = false;
   var projection = d3.geo.albers();
   var properties = function(geom, topology) {
-    return {};
+    return geom.properties || {};
   };
   var value = function(d) {
     return 1;
@@ -21,15 +22,15 @@ module.exports = function() {
     .projection(null);
 
   var cartogram = function(topology, geometries) {
-    console.time('copy');
+    if (debug) timer.start('copy');
     topology = copy(topology);
-    console.timeEnd('copy');
+    if (debug) timer.end('copy');
 
-    console.time('project');
+    if (debug) timer.start('project');
     var projectedArcs = projectArcs(topology, projection);
-    console.timeEnd('project');
+    if (debug) timer.end('project');
 
-    console.time('objectify');
+    if (debug) timer.start('objectify');
     var objects = objectify(projectedArcs, {
       type: "GeometryCollection",
       geometries: geometries
@@ -42,7 +43,7 @@ module.exports = function() {
         geometry: geom
       };
     });
-    console.timeEnd('objectify');
+    if (debug) timer.end('objectify');
 
     var values = objects.map(value);
     var totalValue = d3.sum(values);
@@ -52,9 +53,9 @@ module.exports = function() {
     }
 
     var i = 0;
-    console.time('iterate');
+    if (debug) timer.start('iterate');
     while (i++ < iterations) {
-      console.time('iteration ' + i);
+      if (debug) timer.start('iteration ' + i);
       var areas = objects.map(path.area);
       var totalArea = d3.sum(areas);
       var sizeErrorsTot = 0;
@@ -124,12 +125,12 @@ module.exports = function() {
         }
         i2++;
       }
-      console.time('iteration ' + i);
+      if (debug) timer.end('iteration ' + i);
 
       // break if we hit the target size error
       if (sizeError <= 1) break;
     }
-    console.timeEnd('iterate');
+    if (debug) timer.end('iterate');
 
     return {
       features: objects,
@@ -191,6 +192,15 @@ module.exports = function() {
       return cartogram;
     } else {
       return properties;
+    }
+  };
+
+  cartogram.debug = function(d) {
+    if (arguments.length) {
+      debug = !!d;
+      return cartogram;
+    } else {
+      return debug;
     }
   };
 
