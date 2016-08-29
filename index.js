@@ -1,16 +1,17 @@
-var d3 = require('d3');
+var d3Geo = require('d3-geo')
 var topojson = require('topojson');
 var copy = require('deep-copy');
 
 var projectArcs = require('./lib/projectArcs');
 var objectify = require('./lib/objectify');
 var math = require('./lib/math');
+var utils = require('./lib/utils');
 var timer = require('./lib/timer');
 
 module.exports = function() {
   var iterations = 8;
   var debug = false;
-  var projection = d3.geo.albers();
+  var projection = d3Geo.geoAlbers();
   var properties = function(geom, topology) {
     return geom.properties || {};
   };
@@ -18,7 +19,7 @@ module.exports = function() {
     return 1;
   };
 
-  var path = d3.geo.path()
+  var path = d3Geo.geoPath()
     .projection(null);
 
   var topogram = function(topology, geometries) {
@@ -46,7 +47,7 @@ module.exports = function() {
     if (debug) timer.end('objectify');
 
     var values = objects.map(value);
-    var totalValue = d3.sum(values);
+    var totalValue = math.sum(values);
 
     if (iterations <= 0) {
       return objects;
@@ -57,7 +58,7 @@ module.exports = function() {
     while (i++ < iterations) {
       if (debug) timer.start('iteration ' + i);
       var areas = objects.map(path.area);
-      var totalArea = d3.sum(areas);
+      var totalArea = math.sum(areas);
       var sizeErrorsTot = 0;
       var sizeErrorsNum = 0;
       var meta = objects.map(function(o, j) {
@@ -152,7 +153,7 @@ module.exports = function() {
 
   topogram.value = function(v) {
     if (arguments.length) {
-      value = d3.functor(v);
+      value = utils.functor(v);
       return topogram;
     } else {
       return value;
@@ -188,7 +189,7 @@ module.exports = function() {
 
   topogram.properties = function(props) {
     if (arguments.length) {
-      properties = d3.functor(props);
+      properties = utils.functor(props);
       return topogram;
     } else {
       return properties;
