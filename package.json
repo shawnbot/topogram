@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/shawnbot/topogram#readme",
   "dependencies": {
+    "d3-array": "^1.0.1",
     "d3-geo": "^1.2.4",
     "deep-copy": "^1.1.0",
     "fof": "^1.2.0",

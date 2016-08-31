@@ -1,4 +1,5 @@
 var d3Geo = require('d3-geo')
+var d3Array = require('d3-array')
 var topojson = require('topojson');
 var copy = require('deep-copy');
 
@@ -47,7 +48,7 @@ module.exports = function() {
     if (debug) timer.end('objectify');
 
     var values = objects.map(value);
-    var totalValue = math.sum(values);
+    var totalValue = d3Array.sum(values);
 
     if (iterations <= 0) {
       return objects;
@@ -58,7 +59,7 @@ module.exports = function() {
     while (i++ < iterations) {
       if (debug) timer.start('iteration ' + i);
       var areas = objects.map(path.area);
-      var totalArea = math.sum(areas);
+      var totalArea = d3Array.sum(areas);
       var sizeErrorsTot = 0;
       var sizeErrorsNum = 0;
       var meta = objects.map(function(o, j) {
