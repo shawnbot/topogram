@@ -171,38 +171,6 @@ export default function() {
     };
   }      
 
-
-  function angle(a, b) {
-    return Math.atan2(b[1] - a[1], b[0] - a[0]);
-  }
-
-  function distance(a, b) {
-    var dx = b[0] - a[0],
-        dy = b[1] - a[1];
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-
-  function projector(proj) {
-    var types = {
-      Point: proj,
-      LineString: function(coords) {
-        return coords.map(proj);
-      },
-      MultiLineString: function(arcs) {
-        return arcs.map(types.LineString);
-      },
-      Polygon: function(rings) {
-        return rings.map(types.LineString);
-      },
-      MultiPolygon: function(rings) {
-        return rings.map(types.Polygon);
-      }
-    };
-    return function(geom) {
-      return types[geom.type](geom.coordinates);
-    };
-  }
-
   function cosArctan(dx,dy) {
     if (dy===0) return 0;
     var div = dx/dy;
