@@ -4,10 +4,9 @@
     <title>Cartograms with d3 &amp; TopoJSON</title>
     <meta charset="utf-8">
     <meta property="og:image" content="placeholder.png">
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/d3.v4.js"></script>
     <script src="lib/colorbrewer.js"></script>
-    <script src="lib/topojson.js"></script>
-    <script src="cartogram.js"></script>
+    <script src="build/d3-cartogram.js"></script>
     <style type="text/css">
 
       body {
@@ -200,31 +199,20 @@
         .enter()
         .append("option")
           .attr("value", function(y) { return y; })
-          .text(function(y) { return y; })
+          .text(function(y) { return y; });
 
       var map = d3.select("#map"),
-          zoom = d3.behavior.zoom()
-            .translate([-38, 32])
-            .scale(.94)
-            .scaleExtent([0.5, 10.0])
-            .on("zoom", updateZoom),
           layer = map.append("g")
-            .attr("id", "layer"),
+                .attr("id", "layer"),
           states = layer.append("g")
             .attr("id", "states")
             .selectAll("path");
 
-      // map.call(zoom);
-      updateZoom();
+      layer.attr("transform",
+          "translate(" + -38 + "," + 32 + ")" +
+          "scale(" + [0.94, 0.94] + ")");
 
-      function updateZoom() {
-        var scale = zoom.scale();
-        layer.attr("transform",
-          "translate(" + zoom.translate() + ") " +
-          "scale(" + [scale, scale] + ")");
-      }
-
-      var proj = d3.geo.albersUsa(),
+      var proj = d3.geoAlbersUsa(),
           topology,
           geometries,
           rawData,
@@ -232,7 +220,7 @@
           carto = d3.cartogram()
             .projection(proj)
             .properties(function(d) {
-              return dataById[d.id];
+              return dataById.get(d.id);
             })
             .value(function(d) {
               return +d.properties[field];
@@ -261,7 +249,7 @@
 
       function init() {
         var features = carto.features(topology, geometries),
-            path = d3.geo.path()
+            path = d3.geoPath()
               .projection(proj);
 
         states = states.data(features)
@@ -284,13 +272,13 @@
         body.classed("updating", false);
 
         var features = carto.features(topology, geometries),
-            path = d3.geo.path()
+            path = d3.geoPath()
               .projection(proj);
 
         states.data(features)
           .transition()
             .duration(750)
-            .ease("linear")
+            .ease(d3.easeLinear)
             .attr("fill", "#fafafa")
             .attr("d", path);
 
@@ -320,14 +308,14 @@
             lo = values[0],
             hi = values[values.length - 1];
 
-        var color = d3.scale.linear()
+        var color = d3.scaleLinear()
           .range(colors)
           .domain(lo < 0
             ? [lo, 0, hi]
             : [lo, d3.mean(values), hi]);
 
         // normalize the scale to positive numbers
-        var scale = d3.scale.linear()
+        var scale = d3.scaleLinear()
           .domain([lo, hi])
           .range([1, 1000]);
 
@@ -348,7 +336,7 @@
 
         states.transition()
           .duration(750)
-          .ease("linear")
+          .ease(d3.easeLinear)
           .attr("fill", function(d) {
             return color(value(d));
           })
@@ -381,7 +369,7 @@
             desiredFieldId = parts[0],
             desiredYear = +parts[1];
 
-        field = fieldsById[desiredFieldId] || fields[0];
+        field = fieldsById.get(desiredFieldId) || fields[0];
         year = (years.indexOf(desiredYear) > -1) ? desiredYear : years[0];
 
         fieldSelect.property("selectedIndex", fields.indexOf(field));

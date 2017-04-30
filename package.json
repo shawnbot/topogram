@@ -1,0 +1,46 @@
+{
+  "name": "d3-cartogram",
+  "version": "0.2.0",
+  "description": "Create continuous area cartograms from TopoJSON",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "topojson",
+    "cartogram",
+    "geo"
+  ],
+  "author": "Shawn Allen <shawn.allen@hush.com>",
+  "license": "MIT",
+  "main": "build/d3-cartogram.js",
+  "jsnext:main": "index",
+  "homepage": "https://github.com/shawnbot/topogram#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shawnbot/topogram.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shawnbot/topogram/issues"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup -c",
+    "test": "tape 'test/**/*-test.js'",
+    "prepublish": "npm run test && uglifyjs build/d3-cartogram.js -c -m -o build/d3-cartogram.min.js",
+    "postpublish": "zip -j build/d3-cartogram.zip -- LICENSE README.md build/d3-cartogram.js build/d3-cartogram.min.js"
+  },
+  "devDependencies": {
+    "rollup": "0.27",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-watch": "^3.2.2",
+    "tape": "4",
+    "uglify-js": "2"
+  },
+  "dependencies": {
+    "d3-array": "^1.1.1",
+    "d3-geo": "^1.6.3",
+    "d3-scale-chromatic": "^1.1.1",
+    "deep-copy": "^1.2.0",
+    "topojson-client": "^3.0.0",
+    "yargs": "^7.0.2"
+  }
+}
