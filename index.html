@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta property="og:image" content="placeholder.png">
     <script src="http://d3js.org/d3.v4.js"></script>
-    <script src="lib/colorbrewer.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <script src="build/d3-cartogram.js"></script>
     <style type="text/css">
 
@@ -168,8 +168,7 @@
             .map(fields),
           field = fields[0],
           year = years[0],
-          colors = colorbrewer.RdYlBu[3]
-            .reverse()
+          colors = d3.schemeRdYlBu[3].reverse()
             .map(function(rgb) { return d3.hsl(rgb); });
 
       var body = d3.select("body"),
