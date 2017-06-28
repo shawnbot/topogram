@@ -207,9 +207,12 @@
             .attr("id", "states")
             .selectAll("path");
 
+      var translation = [-38, 32],
+          scaling = 0.94;
+
       layer.attr("transform",
-          "translate(" + -38 + "," + 32 + ")" +
-          "scale(" + [0.94, 0.94] + ")");
+          "translate(" + translation + ")" +
+          "scale(" + scaling + ")");
 
       var proj = d3.geoAlbersUsa(),
           topology,
