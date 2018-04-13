@@ -15,9 +15,10 @@
   "jsnext:main": "index.js",
   "repository": "shawnbot/topogram",
   "scripts": {
+    "lint": "eslint index.js src/**/*.js",
     "prebuild": "rm -rf build && mkdir build",
     "build": "rollup -c",
-    "pretest": "npm run build",
+    "pretest": "npm run lint && npm run build",
     "test": "tape 'test/*.js'",
     "prepublishOnly": "npm test && npm run minify",
     "minify": "uglifyjs build/topogram.js -c -m -o build/topogram.min.js"
@@ -30,6 +31,7 @@
     "topojson-client": "^3.0.0"
   },
   "devDependencies": {
+    "eslint": "^4.19.1",
     "rollup": "0.27",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
