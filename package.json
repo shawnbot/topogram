@@ -1,7 +1,7 @@
 {
-  "name": "d3-cartogram",
-  "version": "0.2.0",
-  "description": "Create continuous area cartograms from TopoJSON",
+  "name": "topogram",
+  "version": "1.0.0",
+  "description": "Create continuous area cartograms with TopoJSON and D3",
   "keywords": [
     "d3",
     "d3-module",
@@ -11,7 +11,7 @@
   ],
   "author": "Shawn Allen <shawn.allen@hush.com>",
   "license": "MIT",
-  "main": "build/d3-cartogram.js",
+  "main": "build/topogram.js",
   "jsnext:main": "index",
   "homepage": "https://github.com/shawnbot/topogram#readme",
   "repository": {
@@ -22,18 +22,19 @@
     "url": "https://github.com/shawnbot/topogram/issues"
   },
   "scripts": {
-    "pretest": "rm -rf build && mkdir build && rollup -c",
-    "test": "tape 'test/**/*-test.js'",
-    "prepublish": "npm run test && uglifyjs build/d3-cartogram.js -c -m -o build/d3-cartogram.min.js",
-    "postpublish": "zip -j build/d3-cartogram.zip -- LICENSE README.md build/d3-cartogram.js build/d3-cartogram.min.js"
+    "pretest": "rm -rf build && mkdir build",
+    "build": "rollup",
+    "test": "npm run build && tape 'test/*.js'",
+    "prepublishOnly": "npm test && npm run minify",
+    "minify": "uglifyjs build/topogram.js -c -m -o build/topogram.min.js"
   },
   "devDependencies": {
     "rollup": "0.27",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-watch": "^3.2.2",
-    "tape": "4",
-    "uglify-js": "2"
+    "tape": "^4",
+    "uglify-js": "^2"
   },
   "dependencies": {
     "d3-array": "^1.1.1",
