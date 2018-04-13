@@ -22,9 +22,10 @@
     "url": "https://github.com/shawnbot/topogram/issues"
   },
   "scripts": {
-    "pretest": "rm -rf build && mkdir build",
-    "build": "rollup",
-    "test": "npm run build && tape 'test/*.js'",
+    "prebuild": "rm -rf build && mkdir build",
+    "build": "rollup -c",
+    "pretest": "npm run build",
+    "test": "tape 'test/*.js'",
     "prepublishOnly": "npm test && npm run minify",
     "minify": "uglifyjs build/topogram.js -c -m -o build/topogram.min.js"
   },
