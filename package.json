@@ -1,7 +1,7 @@
 {
-  "name": "d3-cartogram",
-  "version": "0.2.0",
-  "description": "Create continuous area cartograms from TopoJSON",
+  "name": "topogram",
+  "version": "1.0.0",
+  "description": "Create continuous area cartograms with TopoJSON and D3",
   "keywords": [
     "d3",
     "d3-module",
@@ -11,36 +11,33 @@
   ],
   "author": "Shawn Allen <shawn.allen@hush.com>",
   "license": "MIT",
-  "main": "build/d3-cartogram.js",
-  "jsnext:main": "index",
-  "homepage": "https://github.com/shawnbot/topogram#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shawnbot/topogram.git"
-  },
-  "bugs": {
-    "url": "https://github.com/shawnbot/topogram/issues"
-  },
+  "main": "build/topogram.js",
+  "jsnext:main": "index.js",
+  "repository": "shawnbot/topogram",
   "scripts": {
-    "pretest": "rm -rf build && mkdir build && rollup -c",
-    "test": "tape 'test/**/*-test.js'",
-    "prepublish": "npm run test && uglifyjs build/d3-cartogram.js -c -m -o build/d3-cartogram.min.js",
-    "postpublish": "zip -j build/d3-cartogram.zip -- LICENSE README.md build/d3-cartogram.js build/d3-cartogram.min.js"
-  },
-  "devDependencies": {
-    "rollup": "0.27",
-    "rollup-plugin-commonjs": "^8.0.2",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-watch": "^3.2.2",
-    "tape": "4",
-    "uglify-js": "2"
+    "lint": "eslint index.js src/**/*.js",
+    "prebuild": "rm -rf build && mkdir build",
+    "build": "rollup -c",
+    "pretest": "npm run lint && npm run build",
+    "test": "tape 'test/*.js'",
+    "prepublishOnly": "npm test && npm run minify",
+    "minify": "uglifyjs build/topogram.js -c -m -o build/topogram.min.js"
   },
   "dependencies": {
     "d3-array": "^1.1.1",
     "d3-geo": "^1.6.3",
     "d3-scale-chromatic": "^1.1.1",
     "deep-copy": "^1.2.0",
-    "topojson-client": "^3.0.0",
+    "topojson-client": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "rollup": "0.27",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-watch": "^3.2.2",
+    "tape": "^4",
+    "uglify-js": "^2",
     "yargs": "^7.0.2"
   }
 }
