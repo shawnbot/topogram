@@ -22,20 +22,20 @@
     "prepublishOnly": "npm test && npm run minify",
     "minify": "uglifyjs build/topogram.js -c -m -o build/topogram.min.js"
   },
+  "dependencies": {
+    "d3-array": "^1.1.1",
+    "d3-geo": "^1.6.3",
+    "d3-scale-chromatic": "^1.1.1",
+    "deep-copy": "^1.2.0",
+    "topojson-client": "^3.0.0"
+  },
   "devDependencies": {
     "rollup": "0.27",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-watch": "^3.2.2",
     "tape": "^4",
-    "uglify-js": "^2"
-  },
-  "dependencies": {
-    "d3-array": "^1.1.1",
-    "d3-geo": "^1.6.3",
-    "d3-scale-chromatic": "^1.1.1",
-    "deep-copy": "^1.2.0",
-    "topojson-client": "^3.0.0",
+    "uglify-js": "^2",
     "yargs": "^7.0.2"
   }
 }
