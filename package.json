@@ -12,15 +12,8 @@
   "author": "Shawn Allen <shawn.allen@hush.com>",
   "license": "MIT",
   "main": "build/topogram.js",
-  "jsnext:main": "index",
-  "homepage": "https://github.com/shawnbot/topogram#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shawnbot/topogram.git"
-  },
-  "bugs": {
-    "url": "https://github.com/shawnbot/topogram/issues"
-  },
+  "jsnext:main": "index.js",
+  "repository": "shawnbot/topogram",
   "scripts": {
     "prebuild": "rm -rf build && mkdir build",
     "build": "rollup -c",
