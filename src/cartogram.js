@@ -50,7 +50,8 @@ export default function() {
     topology = copy(topology);
 
     // objects are projected into screen coordinates
-
+    
+    var anyDiscarded = false;
     // project the arcs into screen space
     var tf = transformer(topology.transform),x,y,len1,i1,out1,len2=topology.arcs.length,i2=0,
         projectedArcs = new Array(len2);
@@ -64,11 +65,22 @@ export default function() {
             topology.arcs[i2][i1][0] = (x += topology.arcs[i2][i1][0]);
             topology.arcs[i2][i1][1] = (y += topology.arcs[i2][i1][1]);
             out1[i1] = projection === null ? tf(topology.arcs[i2][i1]) : projection(tf(topology.arcs[i2][i1]));
+            if (out1[i1] === null) {
+              // shape has points outside projection (projection() returned null)
+              // so we'd better disregard it completely
+              out1 = [];
+              anyDiscarded = true;
+              break;
+            }
             i1++;
           }
           projectedArcs[i2++]=out1;
           
         }
+    
+    if (anyDiscarded && typeof console !== "undefined" && console.warn) {
+      console.warn("Some shapes were discarded due to being outside the projection");
+    }
 
     // path with identity projection
     var path = geoPath()
