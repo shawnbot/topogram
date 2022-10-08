@@ -219,7 +219,7 @@
           geometries,
           rawData,
           dataById = {},
-          carto = d3.cartogram()
+          carto = topogram.cartogram()
             .projection(proj)
             .properties(function(d) {
               return dataById.get(d.id);
