@@ -31,7 +31,7 @@
     "topojson-client": "^3.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.19.1",
+    "eslint": "^8.38.0",
     "rollup": "0.27",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
